@@ -36,11 +36,11 @@ for i = 1 : length(varargin) / 2
             % 背景颜色不可以获取，因为获取的是灰的但是输出默认是白色，所以defult设置为w
         case 'ax'
             ax1 = varargin{i * 2};
-        case 'up'
+        case 'up' | 'right'
             if ~varargin{i * 2}
                 UpLowIndex(UpLowIndex == 1) = [];
             end
-        case 'low'
+        case 'low' | 'left'
             if ~varargin{i * 2}
                 UpLowIndex(UpLowIndex == 2) = [];
             end
