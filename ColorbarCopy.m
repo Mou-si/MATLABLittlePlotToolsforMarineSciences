@@ -1,4 +1,12 @@
-function color = ColorbarCopy( dir, varargin )
+function color = ColorbarCopy(dir, varargin)
+%% eample:
+% dir = './ExampleData/ExampleColorbarCopy.png'
+% figure
+% plot(1, 1)
+% colorbar
+% ColorbarCopy(dir)
+
+%%
 if mod(length(varargin), 2) ~= 0
     error('Please check input var');
 end
@@ -9,6 +17,7 @@ iteration = 2;
 BlackCut = 0;
 BlackThreshold = 0.15;
 BlackHeadEnd = 0;
+ChangeNow = 1;
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 -1}
         case 'Continuity'
@@ -23,21 +32,23 @@ for i = 1 : length(varargin) / 2
             BlackCut = varargin{i * 2};
         case 'BlackThreshold'
             BlackThreshold = varargin{i * 2};
-            case 'BlackHeadEnd'
-            BlackThreshold = varargin{i * 2}; % 0²»¼ÓÍ·Î²ºÚÉ«£¬1Í·(Ğ¡µÄÎ»ÖÃ)£¬2Î²£¬3È«²¿
+        case 'BlackHeadEnd'
+            BlackThreshold = varargin{i * 2}; % 0ä¸åŠ å¤´å°¾é»‘è‰²ï¼Œ1å¤´(å°çš„ä½ç½®)ï¼Œ2å°¾ï¼Œ3å…¨éƒ¨
+        case 'ChangeNow'
+            ChangeNow = varargin{i * 2};
     end
 end
 
 %% read colorbar
-colorRead = imread( dir );
-if size( colorRead, 1 ) < size( colorRead, 2 )
-    colorRead = permute( colorRead, [ 2, 1, 3 ] );
+colorRead = imread(dir);
+if size(colorRead, 1) < size(colorRead, 2)
+    colorRead = permute(colorRead, [2, 1, 3]);
 end
-color = colorRead( :, round( size( colorRead, 2 ) / 2 ), : );
-color = squeeze( color );
-color = double( color ) / 255;
-color = flipud( color );
-if BlackCut % È¥ÑÕÉ«¼äµÄºÚÏß
+color = colorRead(:, round( size( colorRead, 2 ) / 2 ), :);
+color = squeeze(color);
+color = double(color) / 255;
+color = flipud(color);
+if BlackCut % å»é¢œè‰²é—´çš„é»‘çº¿
     BlackLoc = sum(abs(color(:, 1 : 2) - color(:, 2 : 3)), 2) < (BlackThreshold / 10) & ...
         sum(color, 2) < BlackThreshold;
     BlackLoc = BlackLoc + [BlackLoc(1 : end - 1); 0] + [0; BlackLoc(2 : end)];
@@ -46,13 +57,13 @@ end
 
 %% get color
 colorChange = color(2 : end, :) - color(1 : end -1, :);
-for j = 1 : iteration % µü´úÈ¥³ı¶¶¶¯
+for j = 1 : iteration % è¿­ä»£å»é™¤æŠ–åŠ¨
     for i = 1 : 3
         colorChange(...
             abs(colorChange(:, i)) <= std(colorChange(colorChange(:, i) > 0, i)) / 2, ...
-            i) = 0; %¶¶¶¯ÅĞ¶¨
+            i) = 0; %æŠ–åŠ¨åˆ¤å®š
     end
-    if j < iteration % ×îºóÒ»´Î²»×ö
+    if j < iteration % æœ€åä¸€æ¬¡ä¸åš
         color = color(sum(colorChange, 2) == 0, :);
         colorChange = color(2 : end, :) - color(1 : end -1, :);
     end
@@ -71,9 +82,12 @@ end
 %% re-map
 if ~exist('Levels', 'var')
     if Continuity
-        Levels = (1 : size(color, 1))'; %Ç°ÃæÃ»ÓĞÉèÖÃLevelsµÄÄ¬ÈÏÖµ£¬ÕâÀïÄ¬ÈÏÎª¾ùÔÈ
+        Levels = (1 : size(color, 1))'; %å‰é¢æ²¡æœ‰è®¾ç½®Levelsçš„é»˜è®¤å€¼ï¼Œè¿™é‡Œé»˜è®¤ä¸ºå‡åŒ€
     else
         Levels = (1 : (size(color, 1) + 1))';
     end
 end
 color = ColorbarRemap(color, Levels, NewLevelNum, Continuity);
+if ChangeNow
+    colormap(color);
+end
