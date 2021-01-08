@@ -6,7 +6,7 @@ function color = ColorbarCopy(dir, varargin)
 % colorbar
 % ColorbarCopy(dir)
 
-%%
+%% varargin set
 if mod(length(varargin), 2) ~= 0
     error('Please check input var');
 end
