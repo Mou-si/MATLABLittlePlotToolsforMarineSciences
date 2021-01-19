@@ -14,7 +14,7 @@ else
     end
 end
 for i = 1 : 3
-    color(:, i) = [interp1(Levels(1 : end -1), color1(:, i), ...
-        linspace(Levels(1), Levels(end), NewLevelNum), method)]';
+    color(:, i) = [interp1(Levels(1 : end - 1), color1(:, i), ...
+        linspace(Levels(1), Levels(end - 1), NewLevelNum), method)]';
 end
 end
