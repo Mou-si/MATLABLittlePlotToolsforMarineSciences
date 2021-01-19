@@ -49,7 +49,7 @@ else
 end
 %% colorbar level 映射法
 if NewLevelNum ~= Levels
-    color = ColorbarRemap(color, Levels, NewLevelNum + 1, Continuity);
+    color = ColorbarRemap(color, Levels, NewLevelNum, Continuity);
 end
 %% 画出colorbar
 colormap(color)
