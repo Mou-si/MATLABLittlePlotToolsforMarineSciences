@@ -1,7 +1,7 @@
 function h = ColorbarArrowIner(varargin)
 %% varargin lists
 % BGColor            Background color, defult 'w'
-% ax1                point a axes
+% ax                 point a axes
 % up or right        up or right arrow, defult on
 % low or left        low or left arrow, defult on
 % LevelNum           Number of lists, defult is equal to ...
