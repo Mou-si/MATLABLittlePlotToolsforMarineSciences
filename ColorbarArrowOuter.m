@@ -126,7 +126,7 @@ else
 end
 
 hold on
-if ArrowAway < 0
+if ArrowAway < 0 % 要是不融合，就画线，否则到下面和colorbar统一画
     ArrowLine = 'None';
 else
     ArrowLine = '-';
@@ -135,22 +135,24 @@ for i = UpLowIndex
     patch(ArrowPoint(i * 2 - 1, :), ArrowPoint(i * 2, :), color(i, :), ...
         'LineStyle', ArrowLine)
 end
-WholeColorbarPoint = [];
+WholeColorbarPoint = zeros(3, 4);
 ColorbarPositionPoint = [repmat(ColorbarPosition([1, 2])', 1, 2), nan(2, 1)];
+% nan凑足3个点
 ColorbarPositionPoint(1, 2) = ColorbarPositionPoint(1, 1) + ColorbarPosition(3);
 ColorbarPositionPoint = repmat(ColorbarPositionPoint, 2, 1);
 ColorbarPositionPoint(4, :) = ColorbarPositionPoint(4, :) + ColorbarPosition(4);
-if ArrowAway < 0
+if ArrowAway < 0  && hColorbar.Box % 如果融合的话且colorbar box on
     hColorbar.Box = 0;
     for i = 1 : 2
         if sum(UpLowIndex == i)
-            WholeColorbarPoint = [WholeColorbarPoint, ...
-                ArrowPoint([i * 2 - 1, i * 2], 1 : 3)];
+            WholeColorbarPoint(2 * i - 1 : 2 * i, :) = ...
+                ArrowPoint([i * 2 - 1, i * 2], 1 : 3);
         else
-            WholeColorbarPoint = [WholeColorbarPoint, ...
-                ColorbarPositionPoint([i * 2 - 1, i * 2], :)];
+            WholeColorbarPoint(2 * i - 1 : 2 * i, :) = ...
+                ColorbarPositionPoint([i * 2 - 1, i * 2], :);
         end
     end
+    % 下面从左到右，上面从右到左
     WholeColorbarPoint = [WholeColorbarPoint(:, 1 : 3), ...
         fliplr(WholeColorbarPoint(:, 4 : 6)), WholeColorbarPoint(:, 1)];
     WholeColorbarPoint(isnan(WholeColorbarPoint(1, :)), :) = [];
