@@ -1,9 +1,15 @@
 function h = ColorbarArrowOuter(varargin)
 %% varargin lists
-% BGColor            Background color, defult 'w'
 % ax1                point a axes
 % up or right        up or right arrow, defult on
 % low or left        low or left arrow, defult on
+% ArrowAway          distance between arrow and colorbar
+%                    >=0  Arrows are independent
+%                    <0   Arrow and colorbar fusion (defult)
+% ArrowLength        the height of arrow
+%                    'l'  arrow is obtuse triangle
+%                    'm'  arrow is right triangle
+%                    'h'  arrow is acute triangle (defult)
 
 %% example:
 % figure
@@ -26,7 +32,8 @@ end
 UpLowIndex = [1, 2];
 color = colormap(ax1);
 LevelNum = size(color, 1);
-ArrowAway = 0;
+ArrowAway = -1;
+ArrowLength = 'h';
 
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 - 1}
@@ -42,11 +49,13 @@ for i = 1 : length(varargin) / 2
             end
         case 'ArrowAway'
             ArrowAway = varargin{i * 2};
+        case 'ArrowLength'
+            ArrowLength = varargin{i * 2};
     end
 end
 
 if isempty(UpLowIndex) % 上下都没有箭头直接跳出函数
-    warning('No iner arrow drawn')
+    warning('No outer arrow drawn')
     return
 end
 
@@ -69,7 +78,14 @@ if Orientation(1) == 'h'
 end
 
 % 下半部分箭头关键点位置
-LevelHigh = ColorbarPosition(3) * sqrt(3) / 2;
+switch ArrowLength
+    case 'h'
+        ArrowHigh = ColorbarPosition(3) * sqrt(3) / 2;
+    case 'm'
+        ArrowHigh = ColorbarPosition(3) * sqrt(2) / 2;
+    case 'l'
+        ArrowHigh = ColorbarPosition(3) / sqrt(3) / 2;
+end
 ColorbarLeftLow = [ColorbarPosition(1); ColorbarPosition(2) + LevelHigh];
 ColorbarRightLow = [ColorbarPosition(1) + ColorbarPosition(3); ...
     ColorbarPosition(2) + LevelHigh];
@@ -89,8 +105,11 @@ if Orientation(1) == 'h'
 end
 
 % 调整colorbar位置，留出arrow空间
-ColorbarPosition(2) = ColorbarPosition(2) + LevelHigh + ArrowAway;
-ColorbarPosition(4) = ColorbarPosition(4) - 2 * LevelHigh - 2 * ArrowAway;
+if ArrowAway < 0
+    ArrowAwaytemp = 0;
+end
+ColorbarPosition(2) = ColorbarPosition(2) + ArrowHigh + ArrowAwaytemp;
+ColorbarPosition(4) = ColorbarPosition(4) - 2 * ArrowHigh - 2 * ArrowAwaytemp;
 
 %% draw
 % 创造一个和gcf一样大的ax，在colorbar位置画上mask
@@ -131,7 +150,8 @@ if ArrowAway <= 0
     WholeColorbarPoint = [WholeColorbarPoint(:, 1 : 3), ...
         fliplr(WholeColorbarPoint(:, 4 : 6)), WholeColorbarPoint(:, 1)];
     WholeColorbarPoint(isnan(WholeColorbarPoint(1, :)), :) = [];
-    line(WholeColorbarPoint(1, :), WholeColorbarPoint(2, :))
+    ColorbarLine = line(WholeColorbarPoint(1, :), WholeColorbarPoint(2, :));
+    set(ColorbarLine, 'Color', LineColor, 'Width', LineWidth);
 end
 axis off % 去除箭头的ax
 axis([0, 1, 0, 1]) % 规定xy轴范围，否则会不满足0到1
