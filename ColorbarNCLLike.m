@@ -56,6 +56,6 @@ colormap(color)
 if ~Continuity
     ColorbarArrowIner
 else
-    cbarrow
+    ColorbarArrowOuter
 end
 end
