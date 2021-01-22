@@ -16,8 +16,12 @@ function h = ColorbarArrowOuter(varargin)
 % a = [1,1;2,2];
 % h = contourf([1, 2], [1, 2], a);
 % colorbar
-% colormap(jet(5))
-% ColorbarArrowIner
+% ColorbarArrowOuter;
+% figure
+% h = contourf([1, 2], [1, 2], a);
+% colorbar
+% ColorbarArrowOuter('low', 0, 'ArrowAway', 0.01, 'ArrowLength', 'm');
+
 %% input
 if mod(length(varargin), 2) ~= 0
     error('Please check input var');
@@ -31,7 +35,6 @@ switch ax1.Tag % 如果已经有cbarrow图层，就判定第2个Axes才是目标
 end
 UpLowIndex = [1, 2];
 color = colormap(ax1);
-LevelNum = size(color, 1);
 ArrowAway = -1;
 ArrowLength = 'h';
 
@@ -39,11 +42,11 @@ for i = 1 : length(varargin) / 2
     switch varargin{i * 2 - 1}
         case 'ax'
             ax1 = varargin{i * 2};
-        case 'up' | 'right'
+        case {'up', 'right'}
             if ~varargin{i * 2}
                 UpLowIndex(UpLowIndex == 1) = [];
             end
-        case 'low' | 'left'
+        case {'low', 'left'}
             if ~varargin{i * 2}
                 UpLowIndex(UpLowIndex == 2) = [];
             end
@@ -60,7 +63,6 @@ if isempty(UpLowIndex) % 上下都没有箭头直接跳出函数
 end
 
 %% prepare
-color = colormap;
 color(2 : end - 1, :) = [];
 ax1Position = get(ax1, 'OuterPosition');
 hColorbar = findobj(gcf, 'Type', 'colorbar');
@@ -86,9 +88,9 @@ switch ArrowLength
     case 'l'
         ArrowHigh = ColorbarPosition(3) / sqrt(3) / 2;
 end
-ColorbarLeftLow = [ColorbarPosition(1); ColorbarPosition(2) + LevelHigh];
+ColorbarLeftLow = [ColorbarPosition(1); ColorbarPosition(2) + ArrowHigh];
 ColorbarRightLow = [ColorbarPosition(1) + ColorbarPosition(3); ...
-    ColorbarPosition(2) + LevelHigh];
+    ColorbarPosition(2) + ArrowHigh];
 ColorbarMidLow = [ColorbarPosition(1) + ColorbarPosition(3) / 2; ...
     ColorbarPosition(2)];
 ArrowPointLow = [ColorbarLeftLow, ColorbarMidLow, ColorbarRightLow, ColorbarLeftLow];
@@ -107,6 +109,8 @@ end
 % 调整colorbar位置，留出arrow空间
 if ArrowAway < 0
     ArrowAwaytemp = 0;
+else
+    ArrowAwaytemp = ArrowAway;
 end
 ColorbarPosition(2) = ColorbarPosition(2) + ArrowHigh + ArrowAwaytemp;
 ColorbarPosition(4) = ColorbarPosition(4) - 2 * ArrowHigh - 2 * ArrowAwaytemp;
@@ -122,7 +126,7 @@ else
 end
 
 hold on
-if ArrowAway <= 0
+if ArrowAway < 0
     ArrowLine = 'None';
 else
     ArrowLine = '-';
@@ -136,7 +140,7 @@ ColorbarPositionPoint = [repmat(ColorbarPosition([1, 2])', 1, 2), nan(2, 1)];
 ColorbarPositionPoint(1, 2) = ColorbarPositionPoint(1, 1) + ColorbarPosition(3);
 ColorbarPositionPoint = repmat(ColorbarPositionPoint, 2, 1);
 ColorbarPositionPoint(4, :) = ColorbarPositionPoint(4, :) + ColorbarPosition(4);
-if ArrowAway <= 0
+if ArrowAway < 0
     hColorbar.Box = 0;
     for i = 1 : 2
         if sum(UpLowIndex == i)
@@ -151,7 +155,7 @@ if ArrowAway <= 0
         fliplr(WholeColorbarPoint(:, 4 : 6)), WholeColorbarPoint(:, 1)];
     WholeColorbarPoint(isnan(WholeColorbarPoint(1, :)), :) = [];
     ColorbarLine = line(WholeColorbarPoint(1, :), WholeColorbarPoint(2, :));
-    set(ColorbarLine, 'Color', LineColor, 'Width', LineWidth);
+    set(ColorbarLine, 'Color', LineColor, 'LineWidth', LineWidth);
 end
 axis off % 去除箭头的ax
 axis([0, 1, 0, 1]) % 规定xy轴范围，否则会不满足0到1
