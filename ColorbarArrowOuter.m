@@ -5,15 +5,14 @@ function h = ColorbarArrowOuter(varargin)
 %
 % This fuction will create an axes called 'cbarrow' and cover the part of
 % colorbar we don't need. Thanks Chad A. Greene of UTIG inspite me.
-
-%% Syntax
 %
+%% Syntax
 % ColorbarArrowOuter
 % h = ColorbarArrowOuter;
 % h = ColorbarArrowOuter(varargin);
-
+%
 %% varargin lists
-% ax1                point a axes
+% ax                 point a axes
 % up or right        up or right arrow, defult on
 % low or left        low or left arrow, defult on
 % ArrowAway          distance between arrow and colorbar
@@ -23,7 +22,7 @@ function h = ColorbarArrowOuter(varargin)
 %                    'l'  arrow is obtuse triangle
 %                    'm'  arrow is right triangle
 %                    'h'  arrow is acute triangle (defult)
-
+%
 %% example:
 % figure
 % a = [1,1;2,2];
@@ -181,7 +180,7 @@ set(hColorbar, 'Location', 'manual');
 set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
 
-if nargout==0
+if nargout == 0
     clear h
 end
 end
