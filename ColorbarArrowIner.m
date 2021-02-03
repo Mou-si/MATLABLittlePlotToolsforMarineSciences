@@ -1,11 +1,23 @@
 function h = ColorbarArrowIner(varargin)
+% Create arrow-endmembers for colorbar to indicate that there are some
+% valume etend the range of colorbar. This fuction suits the in-continuity
+% colorbar (i.e. NCL-like)
+%
+% This fuction will create an axes called 'cbarrow' and cover the part of
+% colorbar we don't need. Thanks Chad A. Greene of UTIG inspite me.
+
+%% Syntax
+%
+% ColorbarArrowIner
+% h = ColorbarArrowIner;
+% h = ColorbarArrowIner(varargin);
+
 %% varargin lists
 % BGColor            Background color, defult 'w'
-% ax                 point a axes
+% ax1                point a axes
 % up or right        up or right arrow, defult on
 % low or left        low or left arrow, defult on
-% LevelNum           Number of lists, defult is equal to ...
-%                    the nums of colors in colorbar
+% ArrowLength        length of arrow, defult is 'h'
 %% example:
 % figure
 % a = [1,1;2,2];
@@ -28,6 +40,7 @@ end
 UpLowIndex = [1, 2];
 color = colormap(ax1);
 LevelNum = size(color, 1);
+ArrowLength = 1;
 
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 - 1}
@@ -36,16 +49,16 @@ for i = 1 : length(varargin) / 2
             % 背景颜色不可以获取，因为获取的是灰的但是输出默认是白色，所以defult设置为w
         case 'ax'
             ax1 = varargin{i * 2};
-        case 'up' | 'right'
+        case {'up', 'right'}
             if ~varargin{i * 2}
                 UpLowIndex(UpLowIndex == 1) = [];
             end
-        case 'low' | 'left'
+        case {'low', 'left'}
             if ~varargin{i * 2}
                 UpLowIndex(UpLowIndex == 2) = [];
             end
-            case 'LevelNum'
-            LevelNum = varargin{i * 2};
+        case 'ArrowLength'
+            ArrowLength = varargin{i * 2};
     end
 end
 
@@ -71,11 +84,20 @@ if Orientation(1) == 'h'
 end
 
 % 下半部分箭头关键点位置
+switch ArrowLength
+    case 'h'
+        ArrowLength = 1;
+    case 'm'
+        ArrowLength = ColorbarPosition(3) * sqrt(3) / 2;
+    case 'l'
+        ArrowLength = ColorbarPosition(3) / sqrt(3) / 2;
+end
+
 ColorbarLeftLow = [ColorbarPosition(1); ColorbarPosition(2)];
 ColorbarRightLow = [ColorbarPosition(1) + ColorbarPosition(3); ColorbarPosition(2)];
 ColorbarMidLow = [ColorbarPosition(1) + ColorbarPosition(3) / 2; ColorbarPosition(2)];
 
-LevelHigh = ColorbarPosition(4) / LevelNum;
+LevelHigh = ColorbarPosition(4) / (LevelNum * ArrowLength);
 ColorbarLeftLowOne = [ColorbarPosition(1); ColorbarPosition(2) + LevelHigh];
 ColorbarRightLowOne = [ColorbarPosition(1) + ColorbarPosition(3); ColorbarPosition(2) + LevelHigh];
 
@@ -117,3 +139,7 @@ set(ax1, 'OuterPosition', ax1Position);
 set(hColorbar, 'Location', 'manual');
 set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
+
+if nargout==0
+    clear h
+end
