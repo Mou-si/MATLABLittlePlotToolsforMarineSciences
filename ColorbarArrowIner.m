@@ -17,7 +17,7 @@ function h = ColorbarArrowIner(varargin)
 % ax1                point a axes
 % up or right        up or right arrow, defult on
 % low or left        low or left arrow, defult on
-% ArrowLength        length of arrow, defult is 'h'
+% ArrowLength        length of arrow, defult is 'h'， can also be 'm', 'l'
 %% example:
 % figure
 % a = [1,1;2,2];
