@@ -1,4 +1,17 @@
 function h = ColorbarArrowOuter(varargin)
+% Create arrow-endmembers for colorbar to indicate that there are some
+% valume etend the range of colorbar. This fuction suits the continuity
+% colorbar (i.e. MATLAB-defult-like)
+%
+% This fuction will create an axes called 'cbarrow' and cover the part of
+% colorbar we don't need. Thanks Chad A. Greene of UTIG inspite me.
+
+%% Syntax
+%
+% ColorbarArrowOuter
+% h = ColorbarArrowOuter;
+% h = ColorbarArrowOuter(varargin);
+
 %% varargin lists
 % ax1                point a axes
 % up or right        up or right arrow, defult on
@@ -167,4 +180,8 @@ set(ax1, 'OuterPosition', ax1Position);
 set(hColorbar, 'Location', 'manual');
 set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
+
+if nargout==0
+    clear h
+end
 end
