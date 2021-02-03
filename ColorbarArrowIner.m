@@ -5,19 +5,18 @@ function h = ColorbarArrowIner(varargin)
 %
 % This fuction will create an axes called 'cbarrow' and cover the part of
 % colorbar we don't need. Thanks Chad A. Greene of UTIG inspite me.
-
-%% Syntax
 %
+%% Syntax
 % ColorbarArrowIner
 % h = ColorbarArrowIner;
 % h = ColorbarArrowIner(varargin);
-
+%
 %% varargin lists
 % BGColor            Background color, defult 'w'
 % ax1                point a axes
 % up or right        up or right arrow, defult on
 % low or left        low or left arrow, defult on
-% ArrowLength        length of arrow, defult is 'h'， can also be 'm', 'l'
+% ArrowLength        length of arrow, defult is 'h'
 %% example:
 % figure
 % a = [1,1;2,2];
@@ -25,6 +24,7 @@ function h = ColorbarArrowIner(varargin)
 % colorbar
 % colormap(jet(5))
 % ColorbarArrowIner
+
 %% input
 if mod(length(varargin), 2) ~= 0
     error('Please check input var');
@@ -140,6 +140,7 @@ set(hColorbar, 'Location', 'manual');
 set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
 
-if nargout==0
+if nargout == 0
     clear h
+end
 end
