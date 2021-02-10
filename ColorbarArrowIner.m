@@ -4,7 +4,8 @@ function h = ColorbarArrowIner(varargin)
 % colorbar (i.e. NCL-like)
 %
 % This fuction will create an axes called 'cbarrow' and cover the part of
-% colorbar we don't need. Thanks Chad A. Greene of UTIG inspite me.
+% colorbar we don't need  (which called 'ColorbarArrows'， and it's lines
+% called 'ColorbarArrowsLine'). Thanks Chad A. Greene of UTIG inspite me.
 %
 %% Syntax
 % ColorbarArrowIner
@@ -26,22 +27,27 @@ function h = ColorbarArrowIner(varargin)
 % ColorbarArrowIner
 
 %% input
+% check varargin num
 if mod(length(varargin), 2) ~= 0
     error('Please check input var');
 end
-% defult
-BGColor = 'w';
+
+% 给定colorbar的数据来自的坐标轴（不是colorbar的坐标轴）
 ax1 = gca;
 switch ax1.Tag % 如果已经有cbarrow图层，就判定第2个Axes才是目标.
     case 'cbarrow'
         ax1 = findobj('Type', 'Axes');
         ax1 = ax1(2);
 end
+
+% defult
+BGColor = 'w';
 UpLowIndex = [1, 2];
 color = colormap(ax1);
 LevelNum = size(color, 1);
 ArrowLength = 1;
 
+% get varargin
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 - 1}
         case 'BGColor'
@@ -62,13 +68,16 @@ for i = 1 : length(varargin) / 2
     end
 end
 
-if isempty(UpLowIndex) % 上下都没有箭头直接跳出函数
+% 上下都没有箭头直接跳出函数
+if isempty(UpLowIndex)
     warning('No iner arrow drawn')
     return
 end
 
 %% prepare
+% 获取ax1位置
 ax1Position = get(ax1, 'OuterPosition');
+% 获取colorbar
 hColorbar = findobj(gcf, 'Type', 'colorbar');
 if isempty(hColorbar)
     hColorbar = colorbar;
@@ -85,29 +94,34 @@ end
 
 % 下半部分箭头关键点位置
 switch ArrowLength
-    case 'h'
+    case 'h' % 全部
         ArrowLength = 1;
-    case 'm'
+    case 'm' % 正三角形
         ArrowLength = ColorbarPosition(3) * sqrt(3) / 2;
-    case 'l'
+    case 'l' % 120钝角三角形
         ArrowLength = ColorbarPosition(3) / sqrt(3) / 2;
 end
-
+% Colorbar具体位置
 ColorbarLeftLow = [ColorbarPosition(1); ColorbarPosition(2)];
 ColorbarRightLow = [ColorbarPosition(1) + ColorbarPosition(3); ColorbarPosition(2)];
-ColorbarMidLow = [ColorbarPosition(1) + ColorbarPosition(3) / 2; ColorbarPosition(2)];
-
+ColorbarMidLow = ...
+    [ColorbarPosition(1) + ColorbarPosition(3) / 2; ColorbarPosition(2)];
+% 与Colorbar计算，得出下半部分箭头位置
 LevelHigh = ColorbarPosition(4) / (LevelNum * ArrowLength);
 ColorbarLeftLowOne = [ColorbarPosition(1); ColorbarPosition(2) + LevelHigh];
-ColorbarRightLowOne = [ColorbarPosition(1) + ColorbarPosition(3); ColorbarPosition(2) + LevelHigh];
-
+ColorbarRightLowOne = ...
+    [ColorbarPosition(1) + ColorbarPosition(3); ColorbarPosition(2) + LevelHigh];
+% 左下，右下，右上，中下，左上，左下，MASK位置
 ColorbarMaskLow = [ColorbarLeftLow, ColorbarRightLow, ColorbarRightLowOne, ...
     ColorbarMidLow, ColorbarLeftLowOne, ColorbarLeftLow];
+
 % 上半部分箭头关键点用下半部分翻转得到
 ColorbarMaskUp = ColorbarMaskLow;
-ColorbarMaskUp(2, :) = 2 * ColorbarPosition(2) + ColorbarPosition(4) - ColorbarMaskUp(2, :);
+ColorbarMaskUp(2, :) = ...
+    2 * ColorbarPosition(2) + ColorbarPosition(4) - ColorbarMaskUp(2, :);
 ColorbarMask = [ColorbarMaskLow; ColorbarMaskUp];
 
+% 竖回去
 if Orientation(1) == 'h'
     ColorbarMask = ColorbarMask([2, 1, 4, 3], :);
     ColorbarPosition = ColorbarPosition([2, 1, 4, 3]); % 恢复Colorba位置
@@ -115,22 +129,29 @@ end
 
 %% draw
 % 创造一个和gcf一样大的ax，在colorbar位置画上mask
-h = findobj('tag', 'cbarrow');
-if isempty(h)
-    h = axes('position', [0, 0, 1, 1], 'tag', 'cbarrow');
+% 如果没有cbarrow就画一个，有点话就去掉先前的Arrow
+CbarrowAx = findobj('tag', 'cbarrow');
+if isempty(CbarrowAx)
+    CbarrowAx = axes('position', [0, 0, 1, 1], 'tag', 'cbarrow');
 else
-    axes(h(1))
-    cla;
+    ColorbarArrowDelete;
 end
 
+% 画MASK
 hold on
 for i = UpLowIndex
-    patch(ColorbarMask(i * 2 - 1, :), ColorbarMask(i * 2, :), BGColor, 'EdgeColor', BGColor)
+    h{i} = patch(ColorbarMask(i * 2 - 1, :), ColorbarMask(i * 2, :), BGColor, ...
+        'EdgeColor', BGColor);
+    h{i}.Tag = 'ColorbarArrows';
     % 画上边界线遮住原来的边界线
 end
-line([ColorbarMask(1, 3 : 5), NaN, ColorbarMask(3, 3 : 5)], ...
+
+ % 画上新的边界线
+ColorbarLine = line([ColorbarMask(1, 3 : 5), NaN, ColorbarMask(3, 3 : 5)], ...
     [ColorbarMask(2, 3 : 5), NaN, ColorbarMask(4, 3 : 5)], ...
-    'color', LineColor, 'LineWidth', LineWidth) % 画上新的边界线
+    'color', LineColor, 'LineWidth', LineWidth);
+ColorbarLine.Tag = 'ColorbarArrowsLine';
+
 axis off % 去除箭头的ax
 axis([0, 1, 0, 1]) % 规定xy轴范围，否则会不满足0到1
 % 调整画，原来的自动colorbar位置会随着窗口变化而变化，这里干脆定死，反正也不好看，
