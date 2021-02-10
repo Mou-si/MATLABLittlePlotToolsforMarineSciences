@@ -9,7 +9,7 @@ function h = ColorbarNCLLike(varargin)
 %% Syntax
 % ColorbarNCLLike
 % h = ColorbarNCLLike;
-% h = ColorbarNCLLike(varargin);
+% h = ColorbarNCLLike(Name, Value);
 %
 %% varargin lists
 % color            input a n-3 matrix in [0, 1] as colormap, or we will get
@@ -99,6 +99,7 @@ if ~Continuity
     catch
         h = ColorbarArrowIner;
     end
+    ColorbarTickLength;
 else
     try
         h = ColorbarArrowOuter(Arrow);
