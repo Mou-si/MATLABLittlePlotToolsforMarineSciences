@@ -87,9 +87,11 @@ else
 end
 
 %% colorbar level remap
-if NewLevelNum ~= Levels
+if NewLevelNum ~= size(Levels, 1)
     color = ColorbarRemap(color, Levels, NewLevelNum, Continuity);
 end
+Levels = linspace(hColorbar.Limits(1), hColorbar.Limits(2), NewLevelNum + 1);
+Levels = Levels(2 : end - 1);
 
 %% draw colorbar
 colormap(color)
@@ -99,6 +101,7 @@ if ~Continuity
     catch
         h = ColorbarArrowIner;
     end
+    set(hColorbar, 'Ticks', Levels);
     ColorbarTickLength;
 else
     try
@@ -108,7 +111,9 @@ else
     end
 end
 
-set(hColorbar, ColorbarVar);
+if ~isempty(ColorbarVar)
+    set(hColorbar, ColorbarVar);
+end
 
 if nargout == 0
     clear h

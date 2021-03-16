@@ -116,6 +116,9 @@ if Orientation(1) == 'h'
 end
 
 % 计算
+% TicksLittley
+% TicksLittley = Limits(1) : TicksLittleSpan : Limits(2);
+% TicksLittley = abs(Ticksy - TicksLittley);
 % Ticksy
 % 先计算相对colorbar的Ticksy位置，再计算绝对位置
 Ticksy = (Ticksy - Limits(1)) ./ (Limits(2) - Limits(1)); % 归一化
@@ -124,7 +127,7 @@ Ticksy(Ticksy == 0) = [];
 Ticksy = Ticksy .* Position(4) + Position(2);
 % NaN用于切断tick的线，以画出多条
 Ticksy = [repmat(Ticksy, 2, 1); nan(size(Ticksy))];
-Ticksy = Ticksy(:)';
+Ticksy = Ticksy(:)'; 
 % Ticksx
 % 加NaN，同上
 Ticksx = [repmat(Position(1), 1, size(Ticksy, 2) ./ 3); ...
@@ -173,7 +176,7 @@ set(hColorbar, 'Location', 'manual');
 set(hColorbar, 'Position', Position);
 
 % 调整图层，保证tickline在图层最底端，这样子通过遮盖形成的arrow就不会多出来横线
-CbarrowAx.Children = [CbarrowAx.Children(1);CbarrowAx.Children(2 : end)];
+CbarrowAx.Children = [CbarrowAx.Children(2 : end); CbarrowAx.Children(1)];
 
 if nargout == 0
     clear h
