@@ -1,4 +1,10 @@
 function [hPeriodMark] = PeriodMark(Period, txt, varargin)
+% PeriodMark can help you mark a period in x or y or any angle with txt.
+% In this function, a period is needed, which is a 2*2 matrix that the
+% first row indicate the start/end location of x-axes and the second one
+% indicate the y-axis one. The txt you want to show is also needed or you
+% can write 'NO_TXT' to claim there is no txt.
+%
 %% Syntax
 % PeriodMark(Period, txt)
 % hLine = PeriodMark(Period, txt);
@@ -31,7 +37,7 @@ function [hPeriodMark] = PeriodMark(Period, txt, varargin)
 %
 %% example
 % plot(1 : 3, 1 :3)
-% PeriodMark([1, 3; 1.5, 1.5], '2012', 'TextPosition', 'mm');
+% PeriodMark([1, 2; 1, 3], '2012', 'TextPosition', 'mm');
 
 %% input
 % check varargin num
@@ -70,30 +76,8 @@ for i = 1 : length(varargin) / 2
 end
 
 %% pre-prepare
-% 要是y轴超出了原来的画框，就画一个新的
-% 获取位置
-xlim = ax1.XLim;
-ylim = ax1.YLim;
-ax1Position = ax1.Position;
-yPosiyiontemp = [ylim, ...
-    max(Period(2, :)) + TickLengh, min(Period(2, :)) - TickLengh];
-% 要是超出就指定一个能覆盖的ax
-if yPosiyiontemp(3) > ylim(2) || yPosiyiontemp(4) < ylim(1)
-        ax2 = subplot('position', [ax1Position(1), ...
-            ax1Position(2) - ...
-            ax1Position(4) / (ylim(2) - ylim(1)) * (ylim(1) - min(yPosiyiontemp)), ...
-        ax1Position(3), ...
-        ax1Position(4) / ...
-        (ylim(2) - ylim(1)) * (max(yPosiyiontemp) - min(yPosiyiontemp))]);
-    ax2.YLim = [ylim(1), max(Period(2, :)) + TickLengh];
-    ax2.Tag = 'PeriodMark';
-    axis off
-    axis([xlim(1), min(yPosiyiontemp), ...
-        xlim(2) - xlim(1), max(yPosiyiontemp) - min(yPosiyiontemp)]);
-    clear yPosiyiontemp
-end
-
-%% draw period line
+% 如果y不一致，说明有倾斜
+Arg = atan((Period(2, 2) - Period(2, 1)) / (Period(1, 2) - Period(1, 1)));
 % 顺序：上，下，NaN，左*3， 左，右，NaN，上，下
 xPeriodPosition = [repmat(Period(1, 1), 1, 2), NaN, ...
     repmat(Period(1, 1), 1, 3), Period(1, :), NaN, ...
@@ -101,8 +85,41 @@ xPeriodPosition = [repmat(Period(1, 1), 1, 2), NaN, ...
 yPeriodPosition = [repmat(Period(2, 1), 1, 2), NaN, ...
     repmat(Period(2, 1), 1, 3), Period(2, :), NaN, ...
     repmat(Period(2, 2), 1, 2)];
-yPeriodPosition([1, 10]) = yPeriodPosition([1, 10]) - TickLengh;
+if Arg ~= 0
+xPeriodPosition([1, end - 1]) = xPeriodPosition([1, end - 1]) + TickLengh * sin(Arg);
+xPeriodPosition([2, end]) = xPeriodPosition([2, end]) - TickLengh * sin(Arg);
+yPeriodPosition([1, 10]) = yPeriodPosition([1, 10]) - TickLengh * cos(Arg);
+yPeriodPosition([2, 11]) = yPeriodPosition([2, 11]) + TickLengh * cos(Arg);
+else
+    yPeriodPosition([1, 10]) = yPeriodPosition([1, 10]) - TickLengh;
 yPeriodPosition([2, 11]) = yPeriodPosition([2, 11]) + TickLengh;
+end
+% 要是y轴超出了原来的画框，就画一个新的
+% 获取位置
+xlim = ax1.XLim;
+ylim = ax1.YLim;
+ax1Position = ax1.Position;
+yPosiyiontemp = [ylim, nanmax(yPeriodPosition), nanmin(yPeriodPosition)];
+xPosiyiontemp = [xlim, nanmax(xPeriodPosition), nanmin(xPeriodPosition)];
+% 要是超出就指定一个能覆盖的ax
+if yPosiyiontemp(3) > ylim(2) || yPosiyiontemp(4) < ylim(1) || ...
+        xPosiyiontemp(3) > xlim(2) || xPosiyiontemp(4) < xlim(1)
+        ax2 = axes('position', [ax1Position(1) - ...
+            ax1Position(3) / (xlim(2) - xlim(1)) * (xlim(1) - min(xPosiyiontemp)), ...
+            ax1Position(2) - ...
+            ax1Position(4) / (ylim(2) - ylim(1)) * (ylim(1) - min(yPosiyiontemp)), ...
+        ax1Position(3) / ...
+        (xlim(2) - xlim(1)) * (max(xPosiyiontemp) - min(xPosiyiontemp)), ...
+        ax1Position(4) / ...
+        (ylim(2) - ylim(1)) * (max(yPosiyiontemp) - min(yPosiyiontemp))], ...
+        'Tag', 'PeriodMark');
+    axis off
+    axis([min(xPosiyiontemp), max(xPosiyiontemp), ...
+        min(yPosiyiontemp), max(yPosiyiontemp)]);
+    clear yPosiyiontemp
+end
+
+%% draw period line
 hold on
 hLine = line(xPeriodPosition, yPeriodPosition, ...
     'Color', Color, 'LineWidth', LineWidth);
@@ -116,24 +133,24 @@ switch txt
 TextPositiontemp = TextPosition;
 switch TextPositiontemp(1)
     case 'l'
-        TextPosition = Period(1, 1) + (Period(1, 2) - Period(1, 1)) / 18;
+        TextPosition = Period(1, 1) + (Period(1, 2) - Period(1, 1)) / 18 * sin(Arg);
         HorizontalAlignment = 'left';
     case 'm'
         TextPosition = sum(Period(1, :)) / 2;
         HorizontalAlignment = 'center';
     case 'r'
-        TextPosition = Period(1, 2) - (Period(1, 2) - Period(1, 1)) / 18;
+        TextPosition = Period(1, 2) - (Period(1, 2) - Period(1, 1)) / 18 * sin(Arg);
         HorizontalAlignment = 'right';
 end
 switch TextPositiontemp(2)
     case 'u'
-        TextPosition = [TextPosition, sum(Period(2, :)) / 2 + TickLengh];
+        TextPosition = [TextPosition, sum(Period(2, :)) / 2 + TickLengh * cos(Arg)];
         VerticalAlignment = 'bottom';
     case 'm'
         TextPosition = [TextPosition, sum(Period(2, :)) / 2];
         VerticalAlignment = 'middle';
     case 'd'
-        TextPosition = [TextPosition, sum(Period(2, :)) / 2 - TickLengh];
+        TextPosition = [TextPosition, sum(Period(2, :)) / 2 - TickLengh * cos(Arg)];
         VerticalAlignment = 'top';
     otherwise
         HorizontalAlignment = 'center';
@@ -143,12 +160,19 @@ hText = text(TextPosition(1), TextPosition(2), txt, ...
     'HorizontalAlignment', HorizontalAlignment, ...
     'VerticalAlignment', VerticalAlignment, ...
     FontValue{:});
+set(hText, 'Rotation', rad2deg(Arg));
 % 要是在横线上，那就把横线断开
 if TextPositiontemp(2) == 'm'
-    TextExtent  =hText.Extent;
-    hLine.XData(5 : 7) = [TextExtent(1) - sum(Period(1, :)) / 36, NaN, ...
-        TextExtent(1) + TextExtent(3) + sum(Period(1, :)) / 36];
-    hLine.YData(6) = NaN;
+    TextExtent = hText.Extent;
+    TextLength = sqrt(sum(TextExtent(3 : 4) .^ 2));
+    hLine.XData(5 : 7) = ...
+        [(hLine.XData(8) + hLine.XData(4)) / 2 - (TextLength * cos(Arg) / 2), ...
+        NaN, ...
+        (hLine.XData(8) + hLine.XData(4)) / 2 + (TextLength * cos(Arg) / 2)];
+    hLine.YData(5 : 7) = ...
+        [(hLine.YData(8) + hLine.YData(4)) / 2 - (TextLength * sin(Arg) / 2), ...
+        NaN, ...
+        (hLine.YData(8) + hLine.YData(4)) / 2 + (TextLength * sin(Arg) / 2)];
 end
 hText.Tag = ['PeriodMark', txt];
 hPeriodMark = [hPeriodMark, hText];
