@@ -23,9 +23,9 @@ function [LxLim, LyLim] = LocationCut(SLon, SLat, LLon, LLat, varargin)
 %
 %% example:
 % SIClim = [260, 360; 140, 220] .* 2;
-% SICLon = hdfread('./ExampleData/LonLat-s6250.hdf', 'Longitudes');
+% SICLon = hdfread('./ExampleData/LonLat-s3125-Antarctic3125.hdf', 'Longitudes');
 % SICLon = SICLon(SIClim(2, 1): SIClim(2, 2), SIClim(1, 1) : SIClim(1, 2));
-% SICLat = hdfread('./ExampleData/LonLat-s6250.hdf'], 'Latitudes');
+% SICLat = hdfread('./ExampleData/LonLat-s3125-Antarctic3125.hdf'], 'Latitudes');
 % SICLat = SICLat(SIClim(2, 1): SIClim(2, 2), SIClim(1, 1) : SIClim(1, 2));
 % DriftLon = ncread('./ExampleData/DTUIceDriftSARExample.nc', 'lon');
 % DriftLat = ncread('./ExampleData/DTUIceDriftSARExample.nc', 'lat');
@@ -43,7 +43,7 @@ end
 SPosit = SLat .* exp(1i .* (SLon + rotation ./ 180));
 SPositReal = real(SPosit);
 SPositImag = imag(SPosit);
-LPosit = LLat .* exp(1i .* (LLon ./ 180));
+LPosit = LLat .* exp(1i .* (LLon + rotation ./ 180));
 LPositReal = real(LPosit);
 LPositImag = imag(LPosit);
 
