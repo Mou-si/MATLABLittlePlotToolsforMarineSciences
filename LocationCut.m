@@ -22,7 +22,7 @@ function [LxLim, LyLim] = LocationCut(SLon, SLat, LLon, LLat, varargin)
 %               meridian locad at diagonal line, the varargin is useful.
 %
 %% example:
-% SIClim = [260, 360; 140, 220] .* 4;
+% SIClim = [260, 360; 140, 220] .* 2;
 % SICLon = hdfread('./ExampleData/LonLat-s6250.hdf', 'Longitudes');
 % SICLon = SICLon(SIClim(2, 1): SIClim(2, 2), SIClim(1, 1) : SIClim(1, 2));
 % SICLat = hdfread('./ExampleData/LonLat-s6250.hdf'], 'Latitudes');
