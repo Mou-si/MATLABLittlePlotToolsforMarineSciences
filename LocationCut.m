@@ -23,7 +23,7 @@ function [LxLim, LyLim] = LocationCut(SLon, SLat, LLon, LLat, varargin)
 %
 %% example:
 % SIClim = [260, 360; 140, 220] .* 4;
-% SICLon = hdfread('./ExampleData/LonLat-s3125-Antarctic3125.hdf', 'Longitudes');
+% SICLon = hdfread('./ExampleData/LonLat-s6250.hdf', 'Longitudes');
 % SICLon = SICLon(SIClim(2, 1): SIClim(2, 2), SIClim(1, 1) : SIClim(1, 2));
 % SICLat = hdfread('./ExampleData/LonLat-s3125-Antarctic3125.hdf'], 'Latitudes');
 % SICLat = SICLat(SIClim(2, 1): SIClim(2, 2), SIClim(1, 1) : SIClim(1, 2));
