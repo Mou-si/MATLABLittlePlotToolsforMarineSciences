@@ -20,6 +20,7 @@ function [LxLim, LyLim] = LocationCut(SLon, SLat, LLon, LLat, varargin)
 % rotation      rotation angle of longitude. You can add an angle on 
 %               longitude artificially to rotate the map. When the prime 
 %               meridian locad at diagonal line, the varargin is useful.
+%               Its unit is degree, 0 defult.
 %
 %% example:
 % SIClim = [260, 360; 140, 220] .* 2;
@@ -32,6 +33,7 @@ function [LxLim, LyLim] = LocationCut(SLon, SLat, LLon, LLat, varargin)
 % DriftPosition = LocationCut(SICLon, SICLat, DriftLon, DriftLat);
 
 %% input
+rotation = 0;
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 - 1}
         case 'rotation'
@@ -40,6 +42,13 @@ for i = 1 : length(varargin) / 2
 end
 
 %% LonLat 2 complex number
+if mean(SLat < 0)
+    SLat = 90 + SLat;
+    LLat = 90 + LLat;
+else
+    SLat = 90 - SLat;
+    LLat = 90 - LLat;
+end
 SPosit = SLat .* exp(1i .* (SLon + rotation ./ 180));
 SPositReal = real(SPosit);
 SPositImag = imag(SPosit);

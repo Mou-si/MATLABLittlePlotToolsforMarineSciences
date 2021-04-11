@@ -50,6 +50,9 @@ CLimitMax = max(abs(CLimit));
 set(ax1, 'CLim', [-CLimitMax, CLimitMax]);
 if ~Symmetry
     cb = findobj('Tag', 'Colorbar');
-    cb.Limit = CLimit;
+    if isempty(cb)
+        cb = colorbar;
+    end
+    cb.Limits = CLimit;
 end
 end
