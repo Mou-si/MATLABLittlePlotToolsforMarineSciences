@@ -49,7 +49,8 @@ end
 CLimitMax = max(abs(CLimit));
 set(ax1, 'CLim', [-CLimitMax, CLimitMax]);
 if ~Symmetry
-    cb = findobj('Tag', 'Colorbar');
+    try
+    cb = findobj(gcf, 'Tag', 'Colorbar');
     if isempty(cb)
         cb = colorbar;
     end
