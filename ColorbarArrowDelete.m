@@ -47,7 +47,7 @@ try
     
     % 去掉Arrwos，ArrwosLine
     delete(hArrwos);
-    hArrwosLine = findobj('Tag', 'ArrowsLine');
+    hArrwosLine = findobj('Tag', 'ColorbarArrowsLine');
     delete(hArrwosLine);
 end
 

@@ -8,6 +8,8 @@ function [x, y] = AxPosition2FigPosition(varargin)
 % [x, y] = AxPosition2FigPosition(Name, Value)
 %
 %% varargin lists
+% MUST (needn't name)
+% NAME & VALUE
 % ax                point a axes (gca defult)
 % x                 point a number/vector/matrix of x in ax
 % y                 point a number/vector/matrix of y in ax

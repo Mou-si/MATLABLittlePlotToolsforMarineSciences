@@ -3,16 +3,20 @@ function Keep0White(varargin)
 %
 % you can point axis, set CLimit, claim the Symmetry of colorbar manually.
 % You may need a red-white-blue colormap to use the function better (the
-% defult one is too defective).
+% defult one is too defective). This function will draw a colorbar, if you
+% don't want it, you can delete it too.
 %
 %% Syntax
 % Keep0White
 % Keep0White(varargin)
 %
 %% varargin lists
-% ax1                point a axes
-% CLim               set colorbar limit
-% Symmetry           set the Symmetry of colorbar limit. 0 defult.
+% MUST (needn't name)
+% NAME & VALUE
+%   ax1                point a axes
+%   CLim               set colorbar limit
+%   Symmetry           set the Symmetry of colorbar limit. 0 defult.
+%   HideColorbar       hide colorbar. 0 defult.
 %
 %% example
 % figure
@@ -22,9 +26,10 @@ function Keep0White(varargin)
 % colormap(redbluecmap)
 % Keep0White
 
-%%
+%% read data
 ax1 = gca;
 Symmetry = 0;
+HideColorbar = 0;
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 - 1}
         case 'ax'
@@ -41,19 +46,29 @@ for i = 1 : length(varargin) / 2
             CLimit = sort(CLimit);
         case 'Symmetry'
             Symmetry = varargin{i * 2};
+        case 'HideColorbar'
+            HideColorbar = varargin{i * 2};
     end
+end
+if HideColorbar && ~Symmetry
+    warning('The Colorbar will be symmetry if you call colorbar again.')
 end
 if ~exist('CLimit', 'Var')
     CLimit = get(ax1, 'CLim');
 end
+
+%% draw 
 CLimitMax = max(abs(CLimit));
 set(ax1, 'CLim', [-CLimitMax, CLimitMax]);
-if ~Symmetry
-    try
+if ~HideColorbar
     cb = findobj(gcf, 'Tag', 'Colorbar');
     if isempty(cb)
         cb = colorbar;
     end
-    cb.Limits = CLimit;
+    if ~Symmetry
+        cb.Limits = CLimit;
+    end
+else
+    colorbar('delete')
 end
 end

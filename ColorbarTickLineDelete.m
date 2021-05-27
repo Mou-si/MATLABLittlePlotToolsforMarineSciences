@@ -11,8 +11,8 @@ try
     % delete ColorbarTickLine
     h = findobj('Tag', 'ColorbarTickLine');
     delete(h);
-    % recover Colorbar TickLength to defult (0.05)
+    % recover Colorbar TickLength to defult (0.01)
     hColorbar = findobj(gcf, 'Type', 'colorbar');
-    hColorbar.TickLength = 0.05; 
+    hColorbar.TickLength = 0.01; 
 end
 end

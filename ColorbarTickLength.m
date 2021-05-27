@@ -1,4 +1,4 @@
-function h = ColorbarTickLength(varargin)
+function h2 = ColorbarTickLength(varargin)
 % Draw trick lines in different length. In MATLAB, there is a setting in
 % colorbar called 'TickLength' can change it. However, due to we don't know
 % the size of axes of colorbar, the defult 'TickLength' id too difficult to
@@ -14,18 +14,21 @@ function h = ColorbarTickLength(varargin)
 % h = ColorbarTickLength(Name, Value);
 %
 %% varargin lists
-% ax              point a axes
-% TickLength      The Length of ticks. The value means a percentage relates
-%                 to colorbar width. If it is 1, it will be the same as the
-%                 colorbar width. 1 defult
-% LineSide         -/r/u      the ticks on the right side of colorbar
-%                             (defult)
-%                 - /l/d      the ticks on the left side of colorbar
-%                 --/- -/b    the ticks on both sides of colorbar
-% LinePosition    Ticks      ticks lines at the row ticks (defult)
-%                 Colors     ticks lines at the colors divide
-%                 [vector]   set tick lines by youself. it should be a 1-n
-%                            vector in the limit of colorbar
+% MUST (needn't name)
+% NAME & VALUE
+%   ax              point a axes
+%   TickLength      The Length of ticks. The value means a percentage
+%                   relates to colorbar width. If it is 1, it will be the
+%                   same asthe colorbar width. 1 defult
+%   LineSide         -/r/u      the ticks on the right side of colorbar
+%                               (defult)
+%                   - /l/d      the ticks on the left side of colorbar
+%                   --/- -/b    the ticks on both sides of colorbar
+%   LinePosition    Ticks      ticks lines at the row ticks (defult)
+%                   Colors     ticks lines at the colors divide [vector]
+%                              set tick lines by youself. it should be a 
+%                              1-n vector in the limit of colorbar
+%   Delete          delete allows it needn't input value
 %
 %% example:
 % figure
@@ -35,25 +38,16 @@ function h = ColorbarTickLength(varargin)
 % ColorbarTickLength('TickLength', 0.5, 'LineSide', ' -')
 
 %% input
-% check varargin num
-if mod(length(varargin), 2) ~= 0
-    error('Please check input var');
-end
 % 给定colorbar的数据来自的坐标轴（不是colorbar的坐标轴）
-ax1 = gca;
-switch ax1.Tag
-    % 如果已经有cbarrow图层，就判定第2个Axes才是目标.
-    case 'cbarrow'
-        ax1 = findobj('Type', 'Axes');
-        ax1 = ax1(2);
-end
+ax1 = GetDataAxisAuto;
+
 % defult
 TickLength = 1;
 LineSide = '- ';
 LinePosition = 'Ticks';
 
 % get varargin
-for i = 1 : length(varargin) / 2
+for i = 1 : length(varargin) / 2 + 0.5
     switch varargin{i * 2 - 1}
         case 'ax'
             ax1 = varargin{i * 2};
@@ -63,6 +57,9 @@ for i = 1 : length(varargin) / 2
             LineSide = varargin{i * 2};
         case 'LinePosition'
             LinePosition = varargin{i * 2};
+        case 'Delete'
+            ColorbarArrowDelete;
+            return
     end
 end
 
@@ -70,11 +67,12 @@ end
 % 获取ax1信息
 ax1Position = get(ax1, 'OuterPosition');
 
-% 获取图层cbarrow
-CbarrowAx = findobj('tag', 'cbarrow');
-if isempty(CbarrowAx) % 若没有，就创建
-    CbarrowAx = axes('position', [0, 0, 1, 1], 'tag', 'cbarrow');
-else % 要是有，清除之前画的TickLine
+% 获取图层AddBGAxis
+CbarrowAx = findobj(gcf, 'tag', 'BGAxis');
+if isempty(CbarrowAx)
+    CbarrowAx = AddBGAxis;
+end
+if ~isempty(findobj('tag', 'ColorbarTickLine'))
     ColorbarTickLineDelete;
 end
 
@@ -178,7 +176,7 @@ set(hColorbar, 'Position', Position);
 % 调整图层，保证tickline在图层最底端，这样子通过遮盖形成的arrow就不会多出来横线
 CbarrowAx.Children = [CbarrowAx.Children(2 : end); CbarrowAx.Children(1)];
 
-if nargout == 0
-    clear h
+if nargout == 1
+    h2 = h;
 end
 end

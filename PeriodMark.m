@@ -1,7 +1,7 @@
-function [hPeriodMark] = PeriodMark(Period, txt, varargin)
+function [hPeriodMark2] = PeriodMark(Period, txt, varargin)
 % PeriodMark can help you mark a period in x or y or any angle with txt.
 % In this function, a period is needed, which is a 2*2 matrix that the
-% first row indicate the start/end location of x-axes and the second one
+% first row indicate the start/end location of x-axis and the second one
 % indicate the y-axis one. The txt you want to show is also needed or you
 % can write 'NO_TXT' to claim there is no txt.
 %
@@ -11,52 +11,45 @@ function [hPeriodMark] = PeriodMark(Period, txt, varargin)
 % [hLine, hText] = PeriodMark(..., Name, Value);
 %
 %% varargin lists
-% Period (MUST)   a 4*4 matrix. The first row should claim the period of x 
-%                 in the axes, and the second claim the y. If you wanna a
-%                 horizontal line, you can set the same y
-% txt (MUST)      a string for the title of Period. If you write 'NO_TXT'
-%                 in it, the txt will be ignored
-% ax              point a axes
-% TickLength      The Length of ticks. The value is depend on yaxes. 0.1 
-%                 defult
-% Color           Color of PeriodMask line
-% LineWidth       Line width of PeriodMask line
-% FontValue       a cell for varargin of text. See more in function text.
-% TextPosition    there are 3*3 potiotion and you also can point the
-%                 position manual. 
-%                 x-way
-%                    l      left
-%                    m      middle
-%                    r      right
-%                 y-way
-%                    u      up
-%                    c      center
-%                    d      down
-%                 you should point as ['x-way', 'y-way']. defult is 
-%                 'mu'(middle-up)
+% MUST (needn't name)
+%   Period          a 4*4 matrix. The first row should claim the period of
+%                   x in the axes, and the second claim the y. If you wanna
+%                   a horizontal line, you can set the same y
+%   txt             a string for the title of Period. If you write 'NO_TXT'
+%                   in it, the txt will be ignored
+% NAME & VALUE
+%   ax              point a axes
+%   TickLength      The Length of ticks. The value is depend on yaxes. 0.1 
+%                   defult
+%   Color           Color of PeriodMask line
+%   LineWidth       Line width of PeriodMask line
+%   FontValue       a cell for varargin of text. See more in function text.
+%   TextPosition    there are 3*3 potiotion and you also can point the
+%                   position manual. 
+%                   x-way
+%                      l      left
+%                      m      middle
+%                      r      right
+%                   y-way
+%                      u      up
+%                      c      center
+%                      d      down
+%                   you should point as ['x-way', 'y-way']. defult is 
+%                   'mu'(middle-up)
+%   Delete          delete allows it needn't input value
 %
 %% example
 % plot(1 : 3, 1 :3)
 % PeriodMark([1, 2; 1, 3], '2012', 'TextPosition', 'mm');
 
 %% input
-% check varargin num
-if mod(length(varargin), 2) ~= 0
-    error('Please check input var');
-end
 TickLengh = 0.1;
 Color = [0, 0, 0];
 LineWidth = 2.5;
 FontValue = {};
 TextPosition = 'mu';
 
-ax1 = gca;
-switch ax1.Tag
-    % 如果已经有cbarrow图层，就判定第2个Axes才是目标.
-    case 'cbarrow'
-        ax1 = findobj('Type', 'Axes');
-        ax1 = ax1(2);
-end
+ax1 = GetDataAxisAuto;
 
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 - 1}
@@ -72,6 +65,9 @@ for i = 1 : length(varargin) / 2
             FontValue = varargin{i * 2};
         case 'TextPosition'
             TextPosition = varargin{i * 2};
+        case 'Delete'
+            ColorbarArrowDelete;
+            return
     end
 end
 
@@ -123,7 +119,7 @@ end
 hold on
 hLine = line(xPeriodPosition, yPeriodPosition, ...
     'Color', Color, 'LineWidth', LineWidth);
-hLine.Tag = ['PeriodMark', txt];
+hLine.Tag = ['PeriodMark.', txt];
 hPeriodMark = hLine;
 
 %% draw period txt
@@ -174,11 +170,11 @@ if TextPositiontemp(2) == 'm'
         NaN, ...
         (hLine.YData(8) + hLine.YData(4)) / 2 + (TextLength * sin(Arg) / 2)];
 end
-hText.Tag = ['PeriodMark', txt];
+hText.Tag = ['PeriodMark.', txt];
 hPeriodMark = [hPeriodMark, hText];
 end
 
-if nargout == 0
-    clear hPeriodMark
+if nargout == 1
+    hPeriodMark2 = hPeriodMark;
 end
 end

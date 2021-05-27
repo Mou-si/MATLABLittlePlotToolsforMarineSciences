@@ -1,9 +1,9 @@
-function h = ColorbarArrowIner(varargin)
+function h2 = ColorbarArrowIner(varargin)
 % Create arrow-endmembers for colorbar to indicate that there are some
 % valume etend the range of colorbar. This fuction suits the in-continuity
 % colorbar (i.e. NCL-like)
 %
-% This fuction will create an axes called 'cbarrow' and cover the part of
+% This fuction will create an axes called 'BGAxis' and cover the part of
 % colorbar we don't need  (which called 'ColorbarArrows'， and it's lines
 % called 'ColorbarArrowsLine'). Thanks Chad A. Greene of UTIG inspite me.
 %
@@ -13,11 +13,15 @@ function h = ColorbarArrowIner(varargin)
 % h = ColorbarArrowIner(varargin);
 %
 %% varargin lists
-% BGColor            Background color, defult 'w'
-% ax1                point a axes
-% up or right        up or right arrow, defult on
-% low or left        low or left arrow, defult on
-% ArrowLength        length of arrow, defult is 'h'
+% MUST (needn't name)
+% NAME & VALUE
+%   BGColor            Background color, defult 'w'
+%   ax1                point a axes
+%   up or right        up or right arrow, defult on
+%   low or left        low or left arrow, defult on
+%   ArrowLength        length of arrow, defult is 'h'
+%   Delete             delete allows. it needn't input value
+%
 %% example:
 % figure
 % a = [1,1;2,2];
@@ -27,18 +31,8 @@ function h = ColorbarArrowIner(varargin)
 % ColorbarArrowIner
 
 %% input
-% check varargin num
-if mod(length(varargin), 2) ~= 0
-    error('Please check input var');
-end
-
 % 给定colorbar的数据来自的坐标轴（不是colorbar的坐标轴）
-ax1 = gca;
-switch ax1.Tag % 如果已经有cbarrow图层，就判定第2个Axes才是目标.
-    case 'cbarrow'
-        ax1 = findobj('Type', 'Axes');
-        ax1 = ax1(2);
-end
+ax1 = GetDataAxisAuto;
 
 % defult
 BGColor = 'w';
@@ -48,7 +42,7 @@ LevelNum = size(color, 1);
 ArrowLength = 1;
 
 % get varargin
-for i = 1 : length(varargin) / 2
+for i = 1 : length(varargin) / 2 + 0.5
     switch varargin{i * 2 - 1}
         case 'BGColor'
             BGColor = varargin{i * 2};
@@ -65,6 +59,9 @@ for i = 1 : length(varargin) / 2
             end
         case 'ArrowLength'
             ArrowLength = varargin{i * 2};
+        case 'Delete'
+            ColorbarArrowDelete;
+            return
     end
 end
 
@@ -75,6 +72,13 @@ if isempty(UpLowIndex)
 end
 
 %% prepare
+% 创造一个和gcf一样大的ax，在colorbar位置画上mask
+% 如果没有BGAxis就画一个
+AddBGAxis;
+% 去掉先前的Arrow
+if ~isempty(findobj('tag', 'ColorbarArrows'))
+    ColorbarArrowDelete;
+end
 % 获取ax1位置
 ax1Position = get(ax1, 'OuterPosition');
 % 获取colorbar
@@ -128,20 +132,11 @@ if Orientation(1) == 'h'
 end
 
 %% draw
-% 创造一个和gcf一样大的ax，在colorbar位置画上mask
-% 如果没有cbarrow就画一个，有点话就去掉先前的Arrow
-CbarrowAx = findobj('tag', 'cbarrow');
-if isempty(CbarrowAx)
-    CbarrowAx = axes('position', [0, 0, 1, 1], 'tag', 'cbarrow');
-else
-    ColorbarArrowDelete;
-end
-
 % 画MASK
 hold on
 for i = UpLowIndex
     h{i} = patch(ColorbarMask(i * 2 - 1, :), ColorbarMask(i * 2, :), BGColor, ...
-        'EdgeColor', BGColor);
+        'EdgeColor', BGColor, 'LineWidth', LineWidth);
     h{i}.Tag = 'ColorbarArrows';
     % 画上边界线遮住原来的边界线
 end
@@ -152,8 +147,6 @@ ColorbarLine = line([ColorbarMask(1, 3 : 5), NaN, ColorbarMask(3, 3 : 5)], ...
     'color', LineColor, 'LineWidth', LineWidth);
 ColorbarLine.Tag = 'ColorbarArrowsLine';
 
-axis off % 去除箭头的ax
-axis([0, 1, 0, 1]) % 规定xy轴范围，否则会不满足0到1
 % 调整画，原来的自动colorbar位置会随着窗口变化而变化，这里干脆定死，反正也不好看，
 % 不会真有人美化colorbar不调整他的大小吧
 set(ax1, 'OuterPosition', ax1Position);
@@ -161,7 +154,7 @@ set(hColorbar, 'Location', 'manual');
 set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
 
-if nargout == 0
-    clear h
+if nargout == 1
+    h2 = h;
 end
 end

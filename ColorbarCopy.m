@@ -1,28 +1,65 @@
 function color = ColorbarCopy(dir, varargin)
-%% eample:
-% dir = './ExampleData/ExampleColorbarCopy.png'
+% copy a colorbar via picture.
+%
+% this function need function ColorbarRemap
+%
+%% Syntax
+% color = ColorbarCopy(dir);
+% color = ColorbarCopy(dir, Name, Value);
+%
+%% varargin lists
+% MUST (needn't name)
+%   dir                 the path of colorbar picture you want to copy
+% NAME & VALUE
+%   Uniform             set the if the colormap you want is Uniform. IF
+%                       you set the 'Uniform', the 'Levels' & 'NewLevelNum'
+%                       is needed better.
+%   NewLevelNum         set the number of colors in new colormap. 1 defult.
+%                       Attention: it is different of 'Levels'. 128 defult.
+%                       If your raw colormap is not uniform, input this.
+%   iteration           enlarge it will improve the recongnization of the
+%                       function when the pic is rough, while if the color
+%                       of colormap in pic is Continuity, too large
+%                       iteration times will confuse coors. 2 defult.
+%   Levels              Levels of new colormap. Attention: it is different
+%                       of 'LevelNum'. If your raw colormap is not uniform,
+%                       input this.
+%   BlackCut            cut the black cross line between colors. 0 deflut.
+%                       Attention: we assume that the black cross line
+%                       exsit between every colors.
+%   BlackThreshold      the Threshold control the error tolerance for
+%                       judging black cross line. 0.15 defult.
+%   BlackHeadEnd        0   there is no black color in the head/end of the
+%                           colormap. (defult)
+%                       1   there is black color in the head (smaller one) 
+%                           of the colormap. 
+%                       2   there is black color in the end (larger one) 
+%                           of the colormap. 
+%
+%% example
 % figure
-% plot(1, 1)
+% a = [1,1;2,2];
+% h = contourf([1, 2], [1, 2], a);
 % colorbar
-% ColorbarCopy(dir)
+% NewColormap = ColorbarCopy('ExampleColorbarCopy.png');
+% colormap(NewColormap);
 
-%% varargin set
+%% input
 if mod(length(varargin), 2) ~= 0
     error('Please check input var');
 end
 % defult
-Continuity = 1;
+Uniform = 1;
 NewLevelNum = 128;
 iteration = 2;
 BlackCut = 0;
 BlackThreshold = 0.15;
 BlackHeadEnd = 0;
-ChangeNow = 1;
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 -1}
-        case 'Continuity'
-            Continuity = varargin{i * 2};
-        case 'LevelNum'
+        case 'Uniform'
+            Uniform = varargin{i * 2};
+        case 'NewLevelNum'
             NewLevelNum = varargin{i * 2};
         case 'iteration'
             iteration = varargin{i * 2};
@@ -33,22 +70,21 @@ for i = 1 : length(varargin) / 2
         case 'BlackThreshold'
             BlackThreshold = varargin{i * 2};
         case 'BlackHeadEnd'
-            BlackThreshold = varargin{i * 2}; % 0‰∏çÂä†Â§¥Â∞æÈªëËâ≤Ôºå1Â§¥(Â∞èÁöÑ‰ΩçÁΩÆ)Ôºå2Â∞æÔºå3ÂÖ®ÈÉ®
-        case 'ChangeNow'
-            ChangeNow = varargin{i * 2};
+            BlackThreshold = varargin{i * 2}; % 0≤ªº”Õ∑Œ≤∫⁄…´£¨1Õ∑(–°µƒŒª÷√)£¨2Œ≤£¨3»´≤ø
     end
 end
 
 %% read colorbar
-colorRead = imread(dir);
-if size(colorRead, 1) < size(colorRead, 2)
-    colorRead = permute(colorRead, [2, 1, 3]);
+colorRead = imread( dir );
+if size( colorRead, 1 ) < size( colorRead, 2 )
+    colorRead = permute( colorRead, [ 2, 1, 3 ] );
 end
-color = colorRead(:, round( size( colorRead, 2 ) / 2 ), :);
-color = squeeze(color);
-color = double(color) / 255;
-color = flipud(color);
-if BlackCut % ÂéªÈ¢úËâ≤Èó¥ÁöÑÈªëÁ∫ø
+color = colorRead( :, round( size( colorRead, 2 ) / 2 ), : );
+color = squeeze( color );
+color = double( color ) / 255;
+color = flipud( color );
+% »•—’…´º‰µƒ∫⁄œﬂ ’‚¿Ô”√¡À◊‘∂Ø≈–∂œ£¨∞——’…´Ã¯◊≈—°£¨À˘“‘ºŸ…Ë√ø∏ˆ—’…´÷Æº‰∂º”–∫⁄∑÷∏Óœﬂ
+if BlackCut
     BlackLoc = sum(abs(color(:, 1 : 2) - color(:, 2 : 3)), 2) < (BlackThreshold / 10) & ...
         sum(color, 2) < BlackThreshold;
     BlackLoc = BlackLoc + [BlackLoc(1 : end - 1); 0] + [0; BlackLoc(2 : end)];
@@ -57,13 +93,13 @@ end
 
 %% get color
 colorChange = color(2 : end, :) - color(1 : end -1, :);
-for j = 1 : iteration % Ëø≠‰ª£ÂéªÈô§ÊäñÂä®
+for j = 1 : iteration % µ¸¥˙»•≥˝∂∂∂Ø
     for i = 1 : 3
         colorChange(...
             abs(colorChange(:, i)) <= std(colorChange(colorChange(:, i) > 0, i)) / 2, ...
-            i) = 0; %ÊäñÂä®Âà§ÂÆö
+            i) = 0; %∂∂∂Ø≈–∂®
     end
-    if j < iteration % ÊúÄÂêé‰∏ÄÊ¨°‰∏çÂÅö
+    if j < iteration % ◊Ó∫Û“ª¥Œ≤ª◊ˆ
         color = color(sum(colorChange, 2) == 0, :);
         colorChange = color(2 : end, :) - color(1 : end -1, :);
     end
@@ -81,13 +117,8 @@ end
 
 %% re-map
 if ~exist('Levels', 'var')
-    if Continuity
-        Levels = (1 : size(color, 1))'; %ÂâçÈù¢Ê≤°ÊúâËÆæÁΩÆLevelsÁöÑÈªòËÆ§ÂÄºÔºåËøôÈáåÈªòËÆ§‰∏∫ÂùáÂåÄ
-    else
-        Levels = (1 : (size(color, 1) + 1))';
-    end
+    Levels = (1 : size(color, 1))'; %«∞√Ê√ª”–…Ë÷√Levelsµƒƒ¨»œ÷µ£¨’‚¿Ôƒ¨»œŒ™æ˘‘»
 end
-color = ColorbarRemap(color, Levels, NewLevelNum, Continuity);
-if ChangeNow
-    colormap(color);
-end
+color = ColorbarRemap(...
+    color, Levels, 'Levels', Levels(1 : end), 'gcd', ...
+    (Levels(end) - Levels(1)) / NewLevelNum);

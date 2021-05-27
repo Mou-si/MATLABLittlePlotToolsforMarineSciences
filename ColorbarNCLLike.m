@@ -1,4 +1,4 @@
-function h = ColorbarNCLLike(varargin)
+function h2 = ColorbarNCLLike(varargin)
 % set colorbar like NCL style, including arrows (via function
 % ColorbarArrowOuter & ColorbarArrowIner), auto remapping, and support
 % auto-adaption with contour plot. The return value is axes of arrows.
@@ -12,20 +12,24 @@ function h = ColorbarNCLLike(varargin)
 % h = ColorbarNCLLike(Name, Value);
 %
 %% varargin lists
-% color            input a n-3 matrix in [0, 1] as colormap, or we will get
-%                  colormap in axes auto
-% Levels           the data valume of colors symbolize, defult is uniform
-% Continuity       the continuity of colorbar, if 1, the arrow will in the
-%                  colorbar like NCL, else out of the colorbar (defult).
-% NewLevelNum      number of levels in Remapping. If continuity, it is 256
-%                  in defult; if uncontinuity and 'Levels' of colormap is
-%                  not uniform, it is 16 in deflut; if uncontinuity but
-%                  there is contour it will also get the level lists
-%                  defultly.
-% Arrow            the varargin of arrows, e.g. ax, up, left, etc.You can
-%                  see funtion ColorbarArrowOuter (continuity) and
-%                  ColorbarArrowIner (uncontinuity) in detail.
-% ColorbarVar      other colorbar varargin can be set here also.
+% MUST (needn't name)
+% NAME & VALUE
+%   color            input a n-3 matrix in [0, 1] as colormap, or we will
+%                    get colormap in axes auto
+%   Levels           the data valume colors symbolizing, defult is uniform
+%   Continuity       the continuity of colorbar. if 1, the arrow will in
+%                    the colorbar like NCL, else out of the colorbar 
+%                    (defult).
+%   NewLevel         the number of colors in new colormap
+%   NewLevelNum      number of levels in Remapping. If continuity, it is
+%                    256 in defult; if uncontinuity and 'Levels' of 
+%                    colormap is not uniform, it is 16 in deflut; if 
+%                    uncontinuity but there is contour it will also get the
+%                    level lists defultly.
+%   Arrow            the varargin of arrows, e.g. ax, up, left, etc.You can
+%                    see funtion ColorbarArrowOuter (continuity) and
+%                    ColorbarArrowIner (uncontinuity) in detail.
+%   ColorbarVar      other colorbar varargin can be set here also.
 %
 %% example
 % figure
@@ -40,14 +44,7 @@ if mod(length(varargin), 2)
 end
 ColorbarVar = cell(0);
 Continuity = 0;
-if ~Continuity
-    try % 要是能找到contour，且不连续colorbar，就用他的levels
-        h_contour = findobj(gcf, 'type', 'contour');
-        NewLevelNum = size(h_contour.LevelList, 2) - 1;
-    end
-else % 连续就256
-    NewLevelNum = 256;
-end
+Uniform = 1;
 hColorbar = findobj(gcf, 'Type', 'colorbar');
 if isempty(hColorbar)
     hColorbar = colorbar; % 没有colorbar就创建
@@ -68,15 +65,26 @@ for i = 1 : length(varargin) / 2
             Continuity = logical(varargin{i * 2});
         case 'Arrow'
             Arrow = varargin{i * 2};
+        case 'NewLevel'
+            NewLevel = varargin{i * 2};
         otherwise
-            ColorbarVar = [ColorbarVar, varargin{i * 2 - 1, i * 2}];
+            ColorbarVar = {ColorbarVar, varargin{i * 2 - 1, i * 2}};
     end
 end
 if ~exist('NewLevelNum', 'Var') % 要是没有指定remap后colorbar颜色数
-    if sum(Levels ~= linspace(Levels(1), Levels(end), size(Levels, 1)))
-        NewLevelNum = size(Levels, 1); % 要是原来就是均匀分布就不动
-    else
-        NewLevelNum = 16; % 不均匀就分成16份
+    if ~Continuity
+        try % 要是能找到contour，且不连续colorbar，就用他的levels
+            h_contour = findobj(gcf, 'type', 'contour');
+            NewLevelNum = size(h_contour.LevelList, 2) - 1;
+        catch
+            if sum(Levels ~= linspace(Levels(1), Levels(end), size(Levels, 1)))
+                NewLevelNum = size(Levels, 1); % 要是原来就是均匀分布就不动
+            else
+                NewLevelNum = 16; % 不均匀就分成16份
+            end
+        end
+    else % 连续就256
+        NewLevelNum = 256;
     end
 end
 if size(Levels, 1) == size(color, 1) + 1
@@ -85,10 +93,15 @@ elseif size(Levels, 1) == size(color, 1)
 else
     Levels = linspace(Levels(1), Levels(end), size(color, 1) + 1)';
 end
+if ~exist('NewLevel', 'Var')
+    NewLevel = linspace(Levels(1), Levels(end), NewLevelNum + 1);
+end
 
 %% colorbar level remap
 if NewLevelNum ~= size(Levels, 1)
-    color = ColorbarRemap(color, Levels, NewLevelNum, Continuity);
+    color = ColorbarRemap(...
+        color, NewLevel, ...
+        'Levels', Levels, 'gcd', (NewLevel(end) - NewLevel(1)) / NewLevelNum);
 end
 
 %% draw colorbar
@@ -131,10 +144,10 @@ else
 end
 
 if ~isempty(ColorbarVar)
-    set(hColorbar, ColorbarVar);
+    set(hColorbar, ColorbarVar{1 : length(ColorbarVar)});
 end
 
-if nargout == 0
-    clear h
+if nargout == 1
+    h2 = h;
 end
 end

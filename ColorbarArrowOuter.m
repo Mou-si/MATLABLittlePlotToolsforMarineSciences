@@ -1,4 +1,4 @@
-function h = ColorbarArrowOuter(varargin)
+function h2 = ColorbarArrowOuter(varargin)
 % Create arrow-endmembers for colorbar to indicate that there are some
 % valume etend the range of colorbar. This fuction suits the continuity
 % colorbar (i.e. MATLAB-defult-like)
@@ -13,16 +13,19 @@ function h = ColorbarArrowOuter(varargin)
 % h = ColorbarArrowOuter(Name, Value);
 %
 %% varargin lists
-% ax                 point a axes
-% up or right        up or right arrow, defult on
-% low or left        low or left arrow, defult on
-% ArrowAway          distance between arrow and colorbar
-%                    >=0  Arrows are independent
-%                    <0   Arrow and colorbar fusion (defult)
-% ArrowLength        the height of arrow
-%                    'l'  arrow is obtuse triangle
-%                    'm'  arrow is right triangle
-%                    'h'  arrow is acute triangle (defult)
+% MUST (needn't name)
+% NAME & VALUE
+%   ax                 point a axes
+%   up or right        up or right arrow, defult on
+%   low or left        low or left arrow, defult on
+%   ArrowAway          distance between arrow and colorbar
+%                      >=0  Arrows are independent
+%                      <0   Arrow and colorbar fusion (defult)
+%   ArrowLength        the height of arrow
+%                        'l'  arrow is obtuse triangle
+%                        'm'  arrow is right triangle
+%                        'h'  arrow is acute triangle (defult)
+%   Delete             delete allows it needn't input value
 %
 %% example:
 % figure
@@ -36,19 +39,9 @@ function h = ColorbarArrowOuter(varargin)
 % ColorbarArrowOuter('low', 0, 'ArrowAway', 0.01, 'ArrowLength', 'm');
 
 %% input
-% check varargin num
-if mod(length(varargin), 2) ~= 0
-    error('Please check input var');
-end
-
 % 给定colorbar的数据来自的坐标轴（不是colorbar的坐标轴）
-ax1 = gca;
-switch ax1.Tag
-    % 如果已经有cbarrow图层，就判定第2个Axes才是目标.
-    case 'cbarrow'
-        ax1 = findobj('Type', 'Axes');
-        ax1 = ax1(2);
-end
+ax1 = GetDataAxisAuto;
+
 % defult
 UpLowIndex = [1, 2];
 color = colormap(ax1);
@@ -58,7 +51,7 @@ ArrowAway = -1;
 ArrowLength = 'h';
 
 % get varargin
-for i = 1 : length(varargin) / 2
+for i = 1 : length(varargin) / 2 + 0.5
     switch varargin{i * 2 - 1}
         case 'ax'
             ax1 = varargin{i * 2};
@@ -74,6 +67,9 @@ for i = 1 : length(varargin) / 2
             ArrowAway = varargin{i * 2};
         case 'ArrowLength'
             ArrowLength = varargin{i * 2};
+        case 'Delete'
+            ColorbarArrowDelete;
+            return
     end
 end
 
@@ -84,6 +80,13 @@ if isempty(UpLowIndex)
 end
 
 %% prepare
+% 创造一个和gcf一样大的ax，在colorbar位置画上mask
+% 如果没有cbarrow就画一个
+AddBGAxis;
+% 去掉先前的Arrow
+if ~isempty(findobj('tag', 'ColorbarArrows'))
+    ColorbarArrowDelete;
+end
 % 获取ax1位置
 ax1Position = get(ax1, 'OuterPosition');
 % 获取colorbar
@@ -143,15 +146,6 @@ if Orientation(1) == 'h'
 end
 
 %% draw
-% 创造一个和gcf一样大的ax，在colorbar位置画上mask
-% 如果没有cbarrow就画一个，有点话就去掉先前的Arrow
-CbarrowAx = findobj('tag', 'cbarrow');
-if isempty(CbarrowAx)
-    CbarrowAx = axes('position', [0, 0, 1, 1], 'tag', 'cbarrow');
-else
-    ColorbarArrowDelete;
-end
-
 hold on
 % 要是不融合，就画线，否则到下面和colorbar统一画
 if ArrowAway < 0
@@ -201,7 +195,7 @@ if ArrowAway < 0  && hColorbar.Box
     hColorbar.Box = 0;
     ColorbarLine = line(WholeColorbarPoint(1, :), WholeColorbarPoint(2, :));
     set(ColorbarLine, 'Color', LineColor, 'LineWidth', LineWidth);
-    ColorbarLine.Tag = 'ArrowsLine';
+    ColorbarLine.Tag = 'ColorbarArrowsLine';
 end
 axis off % 去除箭头的ax
 axis([0, 1, 0, 1]) % 规定xy轴范围，否则会不满足0到1
@@ -212,7 +206,7 @@ set(hColorbar, 'Location', 'manual');
 set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
 
-if nargout == 0
-    clear h
+if nargout == 1
+    h2 = h;
 end
 end
