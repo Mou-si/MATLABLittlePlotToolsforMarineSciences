@@ -41,7 +41,7 @@ function color = ColorbarCopy(dir, varargin)
 % a = [1,1;2,2];
 % h = contourf([1, 2], [1, 2], a);
 % colorbar
-% NewColormap = ColorbarCopy('ExampleColorbarCopy.png');
+% NewColormap = ColorbarCopy('.\ExampleData\ExampleColorbarCopy.png');
 % colormap(NewColormap);
 
 %% input
@@ -94,13 +94,10 @@ end
 %% get color
 colorChange = color(2 : end, :) - color(1 : end -1, :);
 for j = 1 : iteration % 迭代去除抖动
-    for i = 1 : 3
-        colorChange(...
-            abs(colorChange(:, i)) <= std(colorChange(colorChange(:, i) > 0, i)) / 2, ...
-            i) = 0; %抖动判定
-    end
+    colorChange = sqrt(sum(colorChange .^ 2, 2));
+    colorChange(abs(colorChange) <= std(colorChange) / 4, :) = 0; %抖动判定
     if j < iteration % 最后一次不做
-        color = color(sum(colorChange, 2) == 0, :);
+        color = color(colorChange == 0, :);
         colorChange = color(2 : end, :) - color(1 : end -1, :);
     end
 end
@@ -117,7 +114,7 @@ end
 
 %% re-map
 if ~exist('Levels', 'var')
-    Levels = (1 : size(color, 1))'; %前面没有设置Levels的默认值，这里默认为均匀
+    Levels = (1 : size(color, 1) + 1)'; %前面没有设置Levels的默认值，这里默认为均匀
 end
 color = ColorbarRemap(...
     color, Levels, 'Levels', Levels(1 : end), 'gcd', ...
