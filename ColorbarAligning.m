@@ -2,7 +2,7 @@ function ColorbarAligning(varargin)
 % this function is used to align the colorbar to the axis. It includes left
 % aligning, right aligning and center.
 %
-% you can appoint the axis and the align is relative ti the axis.
+% you can appoint the axises and the align is relative to the axises.
 %
 %% Syntax
 % ColorbarAligning
@@ -12,7 +12,8 @@ function ColorbarAligning(varargin)
 % MUST (needn't name)
 %
 % NAME & VALUE
-%   ax                      appoint an axis
+%   ax                      appoint axises, defult is the last drawed axis
+%       'all'               all axises
 %   location
 %       'right' or 'up'     right / up aligning
 %       'left' or 'low'     left / low aligning
@@ -49,31 +50,54 @@ for i = 1 : length(varargin)
     end
 end
 
+% all 时为所有非BGAxis的坐标轴
+if isequal(ax, 'all')
+    h = gcf;
+    ax = findobj(h, 'Type', 'Axes');
+    NotBGAxis = [];
+    for i = 1 : length(ax)
+        switch ax(i).Tag
+            case 'BGAxis'
+            otherwise
+                NotBGAxis = [NotBGAxis, i];
+        end
+    end
+    ax = ax(NotBGAxis);
+end
+
 %% prepare
-set(ax, 'Position', ax.Position);
-axPosition = ax.Position;
+axPosition = zeros(length(ax), 4);
+for i = 1 : length(ax)
+    set(ax(i), 'Position', ax(i).Position);
+    axPosition(i, :) = ax(i).Position;
+end
+axPosition(:, 3 : 4) = axPosition(:, 1 : 2) + axPosition(:, 3 : 4);
+axPosition = [min(axPosition(:, 1 : 2)), max(axPosition(:, 3 : 4))];
+
 % 获取colorbar
 hColorbar = findobj(gcf, 'Type', 'colorbar');
 if isempty(hColorbar)
     hColorbar = colorbar;
 end
+
+% 获取对齐基准点
 cbPosition = hColorbar.Position;
 if Location == 2
     cbAligning = [cbPosition(1) + cbPosition(3) / 2, ...
         cbPosition(2) + cbPosition(4) / 2];
-    axAligning = [axPosition(1) + axPosition(3) / 2, ...
-        axPosition(2) + axPosition(4) / 2];
+    axAligning = [(axPosition(1) + axPosition(3)) / 2, ...
+        (axPosition(2) + axPosition(4)) / 2];
 elseif Location == 1
     cbAligning = [cbPosition(1), cbPosition(2)];
     axAligning = [axPosition(1), axPosition(2)];
 elseif Location == 3
-    cbAligning = [cbPosition(1) + cbPosition(3), ...
-        cbPosition(2) + cbPosition(4)];
+    cbAligning = [cbPosition(3), cbPosition(4)];
     axAligning = [axPosition(1) + axPosition(3), ...
         axPosition(2) + axPosition(4)];
 end
 
 %% draw
+% 横竖分开
 Orientation = get(hColorbar, 'Orientation');
 if Orientation(1) == 'v'
     hColorbar.Position(2) = cbPosition(2) + (axAligning(2) - cbAligning(2));
