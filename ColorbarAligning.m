@@ -38,7 +38,7 @@ ax = GetDataAxisAuto;
 Location = 2;
 
 for i = 1 : length(varargin)
-    switch varargin{i * 2 - 1}
+    switch varargin{i}
         case 'ax'
             ax = varargin{i * 2};
         case {'up', 'right'}
@@ -72,7 +72,7 @@ for i = 1 : length(ax)
     axPosition(i, :) = ax(i).Position;
 end
 axPosition(:, 3 : 4) = axPosition(:, 1 : 2) + axPosition(:, 3 : 4);
-axPosition = [min(axPosition(:, 1 : 2)), max(axPosition(:, 3 : 4))];
+axPosition = [min(axPosition(:, 1 : 2), [], 1), max(axPosition(:, 3 : 4), [], 1)];
 
 % 获取colorbar
 hColorbar = findobj(gcf, 'Type', 'colorbar');
