@@ -6,8 +6,10 @@ function results = SealCTDSelect(Dir, Time, lat, lon)
 % results = SealCTDSelect(Dir, Time, lat, lon)
 %
 %% Input
-%   Dir             the path of the folder fro the dataset, i.e., the
-%                   folder where the downloaded dataset is decompressed
+%   Dir             the path of the folder for the dataset, i.e., the
+%                   folder where the downloaded dataset is decompressed. It
+%                   or its subfloders should include the folders
+%                   DATA_ncARGO and METADATA.
 %   Time            a 1*2 time vector to defined the time range
 %   lat             a 1*2 time vector to defined the latitude range
 %   lon             a 1*2 time vector to defined the longitude range
@@ -24,7 +26,7 @@ function results = SealCTDSelect(Dir, Time, lat, lon)
 % TimeEnd = datetime('2017-12-31');
 % lat = [-78, -76];
 % lon = [162, 185];
-% Dir = '.\MEOP-CTD_2018-04-10\';
+% Dir = '.\eample\MEOP-CTD_2018-04-10\';
 % Time = [TimeStart, TimeEnd];
 % results = SealCTDSelect(Dir, Time, lat, lon);
 
