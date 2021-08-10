@@ -1,6 +1,6 @@
 function results = SealCTDSelect(Dir, Time, lat, lon)
 % this funtion is used to select data by time and location in MEOP Seal CTD
-% dataset. It will tell you which data in which .nc file is you want;
+% dataset. It will tell you which data in which .nc file is you want.
 %
 %% Syntax
 % results = SealCTDSelect(Dir, Time, lat, lon)
@@ -16,7 +16,8 @@ function results = SealCTDSelect(Dir, Time, lat, lon)
 %
 %% Output
 %   results         a struct with two fields
-%    |--- File      a char shows the path of file that meet the requirements
+%    |--- File      a char shows the path of file that meet the
+%    |              requirements
 %    |--- Range     a logical vector shows the data in the file that meet
 %                   the requirements, which length is equal to the number
 %                   of records in the file
@@ -26,7 +27,7 @@ function results = SealCTDSelect(Dir, Time, lat, lon)
 % TimeEnd = datetime('2017-12-31');
 % lat = [-78, -76];
 % lon = [162, 185];
-% Dir = '.\eample\MEOP-CTD_2018-04-10\';
+% Dir = '.\EampleData\MEOP-CTD_2018-04-10\';
 % Time = [TimeStart, TimeEnd];
 % results = SealCTDSelect(Dir, Time, lat, lon);
 
