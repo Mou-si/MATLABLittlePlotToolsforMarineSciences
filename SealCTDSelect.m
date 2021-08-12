@@ -15,7 +15,8 @@ function results = SealCTDSelect(Dir, Time, lat, lon)
 %   lon             a 1*2 time vector to defined the longitude range
 %
 %% Output
-%   results         a struct with two fields
+%   results         a struct with two fields。 If the function returns a
+%    |              empty matrix, there is no satisfactory data. 
 %    |--- File      a char shows the path of file that meet the
 %    |              requirements
 %    |--- Range     a logical vector shows the data in the file that meet
@@ -27,13 +28,16 @@ function results = SealCTDSelect(Dir, Time, lat, lon)
 % TimeEnd = datetime('2017-12-31');
 % lat = [-78, -76];
 % lon = [162, 185];
-% Dir = '.\EampleData\MEOP-CTD_2018-04-10\';
+% Dir = '.\EampleData\MEOP-CTD_2018-04-10';
 % Time = [TimeStart, TimeEnd];
 % results = SealCTDSelect(Dir, Time, lat, lon);
 
 %% 预处理
 % 路径
 % 如果是多个国家久找到各个文件夹进去，作为子路径，接下来一个一个遍历这些国家
+if Dir(end) ~= '\' && Dir(end) ~= '/'
+    Dir = [Dir, '\'];
+end
 SubDir = dir(Dir);
 SubDir = SubDir(cat(1, SubDir.isdir));
 % 要是是单个国家就当前文件夹
@@ -63,6 +67,7 @@ for i = 3 : length(SubDir)
     FileMetadataName = dir(FileMetadata);
     % 遍历每个文件
     for j = 3 : length(FileName)
+        
         % 读取metadata，初步判断是否符合要求
         Metadata = importdata([FileMetadata, FileMetadataName(j).name]);
         SeaTime = [datenum(Metadata{37}(37 : end - 1), 'yyyy-mm-ddTHH:MM:SSZ'), ...
@@ -92,4 +97,9 @@ for i = 3 : length(SubDir)
         results(k).Range = time & location;
         k = k + 1;
     end
+end
+
+% 没有符合要求的数据就返回空值
+if ~exist('results', 'var')
+    results = [];
 end
