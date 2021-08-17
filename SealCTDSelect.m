@@ -20,8 +20,11 @@ function results = SealCTDSelect(Dir, Time, lat, lon)
 %    |--- File      a char shows the path of file that meet the
 %    |              requirements
 %    |--- Range     a logical vector shows the data in the file that meet
-%                   the requirements, which length is equal to the number
-%                   of records in the file
+%    |              the requirements, which length is equal to the number
+%    |              of records in the file
+%    |--- Time      a vector shows the time of data selected
+%    |--- Lat       a vector shows the latitude of data selected
+%    |--- Lon       a vector shows the longitude of data selected
 %
 %% example:
 % TimeStart = datetime('2010-01-01');
@@ -95,6 +98,10 @@ for i = 3 : length(SubDir)
         end
         results(k).File = [FileDir, FileName(j).name];
         results(k).Range = time & location;
+        results(k).Time = datetime(SeaTime(results(k).Range), ...
+            'ConvertFrom', 'datenum');
+        results(k).Lat = SealLat(results(k).Range);
+        results(k).Lon = SealLon(results(k).Range);
         k = k + 1;
     end
 end
