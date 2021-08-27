@@ -88,8 +88,8 @@ LPositImag = LPositImag <= max(SPositImag(:)) & LPositImag >= min(SPositImag(:))
 LPosit = LPositReal & LPositImag;
 
 if nargout == 2
-    LxLim = [find(sum(LPosit, 1) > 0, 1), find(sum(LPosit, 1) > 0, 1, 'last')];
-    LyLim = [find(sum(LPosit, 2) > 0, 1), find(sum(LPosit, 2) > 0, 1, 'last')];
+    LyLim = [find(sum(LPosit, 1) > 0, 1), find(sum(LPosit, 1) > 0, 1, 'last')];
+    LxLim = [find(sum(LPosit, 2) > 0, 1), find(sum(LPosit, 2) > 0, 1, 'last')];
 else
     LxLim = LPosit;
 end
