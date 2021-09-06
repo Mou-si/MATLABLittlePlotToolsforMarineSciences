@@ -57,11 +57,11 @@ for i = 1 : length(varargin) / 2 + 0.5
             ax1 = varargin{i * 2};
         case {'up', 'right'}
             if ~varargin{i * 2}
-                UpLowIndex(UpLowIndex == 1) = [];
+                UpLowIndex(UpLowIndex == 2) = [];
             end
         case {'low', 'left'}
             if ~varargin{i * 2}
-                UpLowIndex(UpLowIndex == 2) = [];
+                UpLowIndex(UpLowIndex == 1) = [];
             end
         case 'ArrowAway'
             ArrowAway = varargin{i * 2};
@@ -82,9 +82,9 @@ end
 %% prepare
 % 创造一个和gcf一样大的ax，在colorbar位置画上mask
 % 如果没有cbarrow就画一个
-AddBGAxis;
+BGAxis = AddBGAxis;
 % 去掉先前的Arrow
-if ~isempty(findobj('tag', 'ColorbarArrows'))
+if ~isempty(findobj(BGAxis, 'tag', 'ColorbarArrows'))
     ColorbarArrowDelete;
 end
 % 获取ax1位置
@@ -136,8 +136,13 @@ else
     ArrowAwaytemp = ArrowAway;
 end
 % colorbar位置要去掉ArrowHigh和Arrow与colorbar间距离
-ColorbarPosition(2) = ColorbarPosition(2) + ArrowHigh + ArrowAwaytemp;
-ColorbarPosition(4) = ColorbarPosition(4) - 2 * ArrowHigh - 2 * ArrowAwaytemp;
+ColorbarPositionMax = ColorbarPosition(2) + ColorbarPosition(4);
+if min(UpLowIndex) == 1
+    ColorbarPosition(2) = ColorbarPosition(2) + ArrowHigh + ArrowAwaytemp;
+elseif max(UpLowIndex) == 2
+    ColorbarPositionMax = ColorbarPositionMax - ArrowHigh - ArrowAwaytemp;
+    ColorbarPosition(4) = ColorbarPositionMax - ColorbarPosition(2);
+end
 
 % 横回来
 if Orientation(1) == 'h'
@@ -173,6 +178,12 @@ if ArrowAway < 0  && hColorbar.Box
     ColorbarPositionPoint = repmat(ColorbarPositionPoint, 2, 1);
     ColorbarPositionPoint(4, :) = ...
         ColorbarPositionPoint(4, :) + ColorbarPosition(4);
+    if Orientation(1) == 'h'
+        temp = ColorbarPositionPoint(1 : 2, 2);
+        ColorbarPositionPoint(1 : 2, 2) = ColorbarPositionPoint(3 : 4, 1);
+        ColorbarPositionPoint(3 : 4, 1) = temp;
+        clear temp
+    end
     
     % 得出lines关键点
     WholeColorbarPoint = zeros(4, 3);
@@ -188,7 +199,7 @@ if ArrowAway < 0  && hColorbar.Box
     % 下面从左到右，上面从右到左
     WholeColorbarPoint = [WholeColorbarPoint(1 : 2, :), ...
         fliplr(WholeColorbarPoint(3 : 4, :)), WholeColorbarPoint(1 : 2, 1)];
-    WholeColorbarPoint(isnan(WholeColorbarPoint(1, :)), :) = [];
+    WholeColorbarPoint(:, isnan(WholeColorbarPoint(1, :))) = [];
     % 不能有NaN，否则线会断
     
     % 画线

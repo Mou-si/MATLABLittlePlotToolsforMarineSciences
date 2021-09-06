@@ -9,7 +9,7 @@ function ColorbarArrowDelete
 %% main
 try
     % 获取Arrwos，colorbar以及他们的信息
-    hArrwos = findobj('Tag', 'ColorbarArrows');
+    hArrwos = findobj(gcf, 'Tag', 'ColorbarArrows');
     hColorbar = findobj(gcf, 'Type', 'colorbar');
     Position = hColorbar.Position;
     Orientation = get(hColorbar, 'Orientation');
@@ -49,6 +49,7 @@ try
     delete(hArrwos);
     hArrwosLine = findobj('Tag', 'ColorbarArrowsLine');
     delete(hArrwosLine);
+    hColorbar.Box = 'on';
 end
 
 %% subfunction Arrow_Colorbar_Extremum
