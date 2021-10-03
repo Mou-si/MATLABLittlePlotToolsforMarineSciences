@@ -14,6 +14,7 @@ function h2 = ColorbarArrowIner(varargin)
 %
 %% varargin lists
 % MUST (needn't name)
+%
 % NAME & VALUE
 %   BGColor            Background color, defult 'w'
 %   ax1                point a axes
@@ -142,8 +143,9 @@ for i = UpLowIndex
 end
 
  % 画上新的边界线
-ColorbarLine = line([ColorbarMask(1, 3 : 5), NaN, ColorbarMask(3, 3 : 5)], ...
-    [ColorbarMask(2, 3 : 5), NaN, ColorbarMask(4, 3 : 5)], ...
+ColorbarLine = line(...
+    [ColorbarMask(1, 3 : 5), fliplr(ColorbarMask(3, 3 : 5)), ColorbarMask(1, 3)], ...
+    [ColorbarMask(2, 3 : 5), fliplr(ColorbarMask(4, 3 : 5)), ColorbarMask(2, 3)], ...
     'color', LineColor, 'LineWidth', LineWidth);
 ColorbarLine.Tag = 'ColorbarArrowsLine';
 
