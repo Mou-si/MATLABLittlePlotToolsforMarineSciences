@@ -33,11 +33,18 @@ function AxShareTick(varargin)
 %
 %% varargin lists
 % NAME & VALUE
-%   ax          you can tell us wich axis will share their tick. The order
-%               of 'ax' must be from top left to bottom right. all defult.
-%   Position    a vector as [x, y, width, height] for the region which ALL
-%               axises occupied
-%   Gap         a vector as [xGap, yGap] for the gaps of subplots.
+%   ax              you can tell us wich axis will share their tick. The
+%                   order of 'ax' must be from top left to bottom right.
+%                   all defult.
+%   Position        a vector as [x, y, width, height] for the region which
+%                   ALL axises occupied
+%   Gap             a vector as [xGap, yGap] for the gaps of subplots.
+%   XAxisLocation   set the location of XAxis. you can use 'bottom', 'top',
+%                   or 'both'
+%   YAxisLocation   set the location of YAxis. you can use 'left', 'right',
+%                   or 'both'
+%   JustifyCenter   set if the subplots in the last raw will be justify
+%                   center. Input 0 or 1 please. 0 defult.
 %
 %% example
 % for i = 6
@@ -47,14 +54,21 @@ function AxShareTick(varargin)
 
 %% input
 ax = 'all';
+JustifyCenter = 0;
 for i = 1 : length(varargin)
-    switch varargin{i * 2 - 1}
+    switch varargin{i}
         case 'ax'
-            ax = varargin{i * 2};
+            ax = varargin{i + 1};
         case 'Position'
-            Position = varargin{i * 2};
+            Position = varargin{i + 1};
         case 'Gap'
-            Gap = varargin{i * 2};
+            Gap = varargin{i + 1};
+        case 'XAxisLocation'
+            XAxisLocation = varargin{i + 1};
+        case 'YAxisLocation'
+            YAxisLocation = varargin{i + 1};
+        case 'JustifyCenter'
+            JustifyCenter = varargin{i + 1};
     end
 end
 
@@ -108,7 +122,7 @@ if ~exist('Position', 'Var')
     xlength = (xlength + xgap) / xn - xgap;
     xstart = ax(1).Position(1);
     ylength = (ax(1).Position(2) + ax(1).Position(4)) - ...
-        ax(xn + 1).Position(2);
+        ax(end).Position(2);
     ylength = (ylength + ygap) / yn - ygap;
     ystart = ax(1).Position(2) + ax(1).Position(4) - ylength;
 else % 手动
@@ -118,16 +132,86 @@ else % 手动
     ystart = Position(2) + Position(4) - ylength;
 end
 
+% 自动获取AxisLocation
+if ~exist('XAxisLocation', 'Var')
+    XAxisLocation = ax(1).XAxisLocation;
+end
+if length(ax(1).YAxis) == 1
+    if ~exist('YAxisLocation', 'Var')
+        YAxisLocation = ax(1).YAxisLocation;
+    end
+elseif length(ax(1).YAxis) == 2
+    YAxisLocation = 'left&right';
+end
+
+% 根据AxisLocation决定保留哪些标签
+% 0 -- 无标签； 1 -- 下标签； 2 -- 上标签
+XAxisKeep = zeros(length(ax), 1);
+switch XAxisLocation
+    case 'bottom'
+        XAxisKeep(xn * (yn - 1) + 1 : end) = 1;
+    case 'top'
+        XAxisKeep(1 : xn) = 2;
+    case 'both' % 都有情况下要是只有一行就只保留下标签
+        XAxisKeep(1 : xn) = 2;
+        XAxisKeep(xn * (yn - 1) + 1 : end) = 1;
+end
+% 0 -- 无标签； 1 -- 左标签； 2 -- 右标签
+% 只有一个y坐标时一列就够了，多的一列是为了两个坐标
+YAxisKeep = zeros(length(ax), 2);
+switch YAxisLocation
+    case 'left'
+        YAxisKeep(1 : xn : end) = 1;
+    case 'right'
+        YAxisKeep(xn : xn : end) = 2;
+        YAxisKeep(end, 1) = 2;
+    case 'both' % 都有情况下要是只有一列就只保留左标签
+        YAxisKeep(xn : xn : end) = 2;
+        YAxisKeep(end, 1) = 2;
+        YAxisKeep(1 : xn : end) = 1;
+    case 'left&right'
+        YAxisKeep(1 : xn : end, 1) = 1;
+        % 跳过指定YAxisLocation，要不然会报错
+        YAxisKeep(xn : xn : end, 2) = 99;
+        YAxisKeep(end, 2) = 99;
+end
+
+% 最后一行不够的图居中对齐
+if JustifyCenter
+    xstartend = xstart + (xn * yn - length(ax)) * (xlength + xgap) / 2;
+end
+    
 %% change ax position and delete TickLabel
 for i = 1 : length(ax)
+    if JustifyCenter && i > xn * (yn - 1)
+        xstart = xstartend;
+    end
     ax(i).Position = [xstart + mod(i - 1, xn) * (xgap + xlength), ...
         ystart - floor((i - 0.5) / xn) * (ygap + ylength), ...
         xlength, ylength];
-    if mod(i - 1, 3) ~= yn
-        ax(i).YTickLabel = {};
-        ax(i).YLabel = [];
+    for j = length(ax(1).YAxis)
+        if length(ax(1).YAxis) == 2 && j == 1
+            yyaxis(ax(i), 'left')
+        elseif length(ax(1).YAxis) == 2 && j == 2
+            yyaxis(ax(i), 'right')
+        end
+        switch YAxisKeep(i, j)
+            case 0 % 无标签
+                ax(i).YTickLabel = {};
+                ax(i).YLabel = [];
+            case 1 % 左标签
+                ax(i).YAxisLocation = 'left';
+            case 2 % 右标签
+                ax(i).YAxisLocation = 'right';
+        end
     end
-    if floor((i - 0.5) / xn) ~= yn - 1
-        ax(i).XTickLabel = {};
+    switch XAxisKeep(i)
+        case 0 % 无标签
+            ax(i).XTickLabel = {};
+            ax(i).XLabel = [];
+        case 1 % 下标签
+            ax(i).XAxisLocation = 'bottom';
+        case 2 % 上标签
+            ax(i).XAxisLocation = 'top';
     end
 end
