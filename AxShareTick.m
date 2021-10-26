@@ -23,7 +23,7 @@ function AxShareTick(varargin)
 %    0|_______|_______|_______| |_______|_______|_______|
 %     0       1       2       3 0       1       2       3
 %                 x                         x
-% 
+%
 % maybe the funtion 'subplot' should be used before this function, because
 % the funtion only can processe the regular sunplots.
 %
@@ -43,6 +43,14 @@ function AxShareTick(varargin)
 %                   or 'both'
 %   YAxisLocation   set the location of YAxis. you can use 'left', 'right',
 %                   or 'both'
+%   XLackTick       set if the the subplots at the top or bottom of each 
+%                   column have xtick labels. defult is 0, which mean only
+%                   the top or bottom subplots of the total subplots have
+%                   xtick labels.
+%   YLackTick       set if the the subplots at the left or right of each 
+%                   row have ytick labels. defult is 0, which mean only the
+%                   left or right subplots of the total subplots have ytick
+%                   labels.
 %   JustifyCenter   set if the subplots in the last raw will be justify
 %                   center. Input 0 or 1 please. 0 defult.
 %   m_map           a logical value to tell the function if you use m_map
@@ -77,6 +85,8 @@ function AxShareTick(varargin)
 ax = 'all';
 JustifyCenter = 0;
 m_map = 0;
+XLackTick = 0;
+YLackTick = 0;
 for i = 1 : length(varargin)
     if ~isequal(class(varargin{i}), 'char') && ...
             ~isequal(class(varargin{i}), 'string')
@@ -93,6 +103,10 @@ for i = 1 : length(varargin)
             XAxisLocation = varargin{i + 1};
         case 'YAxisLocation'
             YAxisLocation = varargin{i + 1};
+        case 'XLackTick'
+            XLackTick = varargin{i + 1};
+        case 'YLackTick'
+            YLackTick = varargin{i + 1};
         case 'JustifyCenter'
             JustifyCenter = varargin{i + 1};
         case 'm_map'
@@ -117,16 +131,25 @@ if isequal(ax, 'all')
     ax = ax(length(ax) : -1 : 1); % subplot画的顺序和标号顺序是反的
 end
 
-% 数量
-xn = 1;
-for i = 1 : length(ax) - 1
-    if ax(i).Position(2) == ax(i + 1).Position(2)
-        xn = xn + 1;
-    else
-        break
-    end
+% 旧位置
+OldPsition = zeros(length(ax), 4);
+for i = 1 : length(ax)
+    OldPsition(i, :) = ax(i).Position;
 end
-yn = ceil(length(ax) / xn);
+OldLength = OldPsition(1, 3 : 4);
+OldPsition = [min(OldPsition(:, 1 : 2)), ...
+    max(OldPsition(:, 1 : 2)) + OldLength - min(OldPsition(:, 1 : 2))];
+
+% 数量
+xn = floor(OldPsition(3) / OldLength(1));
+yn = floor(OldPsition(4) / OldLength(2));
+
+% 实际序号
+iture =zeros(length(ax), 1);
+for i = 1 : length(ax)
+    iture(i) = floor((ax(i).Position(1) - OldPsition(1)) ./ OldLength(1)) + 1 + ...
+        (yn - floor((ax(i).Position(2) - OldPsition(2)) ./ OldLength(2)) - 1) * xn;
+end
 
 % 自动获取Gap
 if ~exist('Gap', 'Var')
@@ -190,12 +213,33 @@ end
 XAxisKeep = zeros(length(ax), 1);
 switch XAxisLocation
     case 'bottom'
-        XAxisKeep(xn * (yn - 1) + 1 : end) = 1;
+        if XLackTick
+            for i = 0 : xn - 1
+                XAxisKeep(find(mod(iture, yn) == i, 1, 'last')) = 1;
+            end
+        else
+            XAxisKeep(iture > (xn * (yn - 1))) = 1;
+        end
     case 'top'
-        XAxisKeep(1 : xn) = 2;
+        if XLackTick
+            for i = 0 : xn - 1
+                XAxisKeep(find(mod(iture, yn) == i, 1)) = 2;
+            end
+        else
+            XAxisKeep(iture <= xn) = 2;
+        end
     case 'both' % 都有情况下要是只有一行就只保留下标签
-        XAxisKeep(1 : xn) = 2;
-        XAxisKeep(xn * (yn - 1) + 1 : end) = 1;
+        if XLackTick
+            for i = 0 : xn - 1
+                XAxisKeep(find(mod(iture, yn) == i, 1, 'last')) = 1;
+            end
+            for i = 0 : xn - 1
+                XAxisKeep(find(mod(iture, yn) == i, 1)) = 2;
+            end
+        else
+            XAxisKeep(iture <= xn) = 2;
+            XAxisKeep(iture > (xn * (yn - 1))) = 1;
+        end
     case 'middle'
         XAxisKeep(:) = 99;
 end
@@ -204,19 +248,49 @@ end
 YAxisKeep = zeros(length(ax), 2);
 switch YAxisLocation
     case 'left'
-        YAxisKeep(1 : xn : end) = 1;
+        if YLackTick
+            for i = 1 : yn
+                YAxisKeep(find(ceil((iture - 0.5) / xn) == i, 1)) = 1;
+            end
+        else
+            YAxisKeep(mod(iture, xn) == 1, 1) = 1;
+        end
     case 'right'
-        YAxisKeep(xn : xn : end) = 2;
-        YAxisKeep(end, 1) = 2;
+        if YLackTick
+            for i = 1 : yn
+                YAxisKeep...
+                    (find(ceil((iture - 0.5) / xn) == i, 1, 'last')) = 2;
+            end
+        else
+            YAxisKeep(mod(iture, xn) == 0, 2) = 2;
+        end
     case 'both' % 都有情况下要是只有一列就只保留左标签
-        YAxisKeep(xn : xn : end) = 2;
-        YAxisKeep(end, 1) = 2;
-        YAxisKeep(1 : xn : end) = 1;
+        if YLackTick
+            for i = 1 : yn
+                YAxisKeep(find(ceil((iture - 0.5) / xn) == i, 1)) = 1;
+            end
+            for i = 1 : yn
+                YAxisKeep...
+                    (find(ceil((iture - 0.5) / xn) == i, 1, 'last')) = 2;
+            end
+        else
+            YAxisKeep(mod(iture, xn) == 0, 2) = 2;
+            YAxisKeep(mod(iture, xn) == 1, 1) = 1;
+        end
     case 'left&right'
-        YAxisKeep(1 : xn : end, 1) = 99;
-        % 跳过指定YAxisLocation，要不然会报错
-        YAxisKeep(xn : xn : end, 2) = 99;
-        YAxisKeep(end, 2) = 99;
+        if YLackTick
+            for i = 1 : yn
+                YAxisKeep(find(ceil((iture - 0.5) / xn) == i, 1)) = 99;
+            end
+            for i = 1 : yn
+                YAxisKeep...
+                    (find(ceil((iture - 0.5) / xn) == i, 1, 'last')) = 99;
+            end
+        else
+            YAxisKeep(mod(iture, xn) == 1, 1) = 99;
+            % 跳过指定YAxisLocation，要不然会报错
+            YAxisKeep(mod(iture, xn) == 0, 2) = 99;
+        end
     case 'middle'
         YAxisKeep(:) = 99;
 end
@@ -225,14 +299,15 @@ end
 if JustifyCenter
     xstartend = xstart + (xn * yn - length(ax)) * (xlength + xgap) / 2;
 end
-    
+
 %% change ax position and delete TickLabel
 for i = 1 : length(ax)
     if JustifyCenter && i > xn * (yn - 1)
         xstart = xstartend;
     end
-    ax(i).Position = [xstart + mod(i - 1, xn) * (xgap + xlength), ...
-        ystart - floor((i - 0.5) / xn) * (ygap + ylength), ...
+    
+    ax(i).Position = [xstart + mod(iture(i) - 1, xn) * (xgap + xlength), ...
+        ystart - floor((iture(i) - 0.5) / xn) * (ygap + ylength), ...
         xlength, ylength];
     if ~m_map
         for j = 1 : length(ax(1).YAxis)
@@ -294,7 +369,7 @@ for i = 1 : length(ax)
             'XaxisLocation', XAxisLocationtemp, ...
             'YaxisLocation', YAxisLocationtemp);
         if YAxisKeep(i) == 0
-            delete(findobj(gca, 'Tag', 'm_grid_yticklabel'));
+            delete(findobj(gca, 'Tag', 'm_grid_yticklabels'));
         end
         if XAxisKeep(i) == 0
             delete(findobj(gca, 'Tag', 'm_grid_xticklabel'));

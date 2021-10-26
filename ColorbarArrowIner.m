@@ -80,6 +80,7 @@ AddBGAxis;
 if ~isempty(findobj('tag', 'ColorbarArrows'))
     ColorbarArrowDelete;
 end
+
 % 获取ax1位置
 ax1Position = get(ax1, 'OuterPosition');
 % 获取colorbar
@@ -87,6 +88,21 @@ hColorbar = findobj(gcf, 'Type', 'colorbar');
 if isempty(hColorbar)
     hColorbar = colorbar;
 end
+% 确定与ax1匹配的colorbar
+ColorbarLimOld = get(hColorbar, 'Limits');
+ColorbarLimOld = cell2mat(ColorbarLimOld);
+[cmin, cmax] = caxis(ax1);
+caxis(ax1, [cmin - 0.1, cmax]);
+ColorbarLim = get(hColorbar, 'Limits');
+ColorbarLim = cell2mat(ColorbarLim);
+TargetColorbar = find(ColorbarLim ~= ColorbarLimOld);
+if length(TargetColorbar) > 1
+    warning('Too much colorbar for one axis');
+elseif isempty(TargetColorbar)
+    error('There is no colorbar for target axis');
+end
+hColorbar = hColorbar(TargetColorbar(1));
+
 ColorbarPosition = get(hColorbar, 'Position');
 LineWidth = get(hColorbar, 'LineWidth');
 LineColor = get(hColorbar, 'Color');

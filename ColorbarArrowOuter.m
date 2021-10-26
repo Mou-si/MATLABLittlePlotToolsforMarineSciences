@@ -44,9 +44,6 @@ ax1 = GetDataAxisAuto;
 
 % defult
 UpLowIndex = [1, 2];
-color = colormap(ax1);
-% 取colorbar头尾
-color(2 : end - 1, :) = [];
 ArrowAway = -1;
 ArrowLength = 'h';
 
@@ -79,6 +76,11 @@ if isempty(UpLowIndex)
     return
 end
 
+color = colormap(ax1);
+% 取colorbar头尾
+color(2 : end - 1, :) = [];
+
+
 %% prepare
 % 创造一个和gcf一样大的ax，在colorbar位置画上mask
 % 如果没有cbarrow就画一个
@@ -94,6 +96,21 @@ hColorbar = findobj(gcf, 'Type', 'colorbar');
 if isempty(hColorbar)
     hColorbar = colorbar;
 end
+% 确定与ax1匹配的colorbar
+ColorbarLimOld = get(hColorbar, 'Limits');
+ColorbarLimOld = cell2mat(ColorbarLimOld);
+[cmin, cmax] = caxis(ax1);
+caxis(ax1, [cmin - 0.1, cmax]);
+ColorbarLim = get(hColorbar, 'Limits');
+ColorbarLim = cell2mat(ColorbarLim);
+TargetColorbar = find(ColorbarLim ~= ColorbarLimOld);
+if length(TargetColorbar) > 1
+    warning('Too much colorbar for one axis');
+elseif isempty(TargetColorbar)
+    error('There is no colorbar for target axis');
+end
+hColorbar = hColorbar(TargetColorbar(1));
+
 ColorbarPosition = get(hColorbar, 'Position');
 LineWidth = get(hColorbar, 'LineWidth');
 LineColor = get(hColorbar, 'Color');
@@ -139,7 +156,9 @@ end
 ColorbarPositionMax = ColorbarPosition(2) + ColorbarPosition(4);
 if min(UpLowIndex) == 1
     ColorbarPosition(2) = ColorbarPosition(2) + ArrowHigh + ArrowAwaytemp;
-elseif max(UpLowIndex) == 2
+    ColorbarPosition(4) = ColorbarPosition(4) - ArrowHigh + ArrowAwaytemp;
+end
+if max(UpLowIndex) == 2
     ColorbarPositionMax = ColorbarPositionMax - ArrowHigh - ArrowAwaytemp;
     ColorbarPosition(4) = ColorbarPositionMax - ColorbarPosition(2);
 end
