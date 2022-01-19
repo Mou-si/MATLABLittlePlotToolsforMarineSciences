@@ -89,19 +89,21 @@ if isempty(hColorbar)
     hColorbar = colorbar;
 end
 % 确定与ax1匹配的colorbar
-ColorbarLimOld = get(hColorbar, 'Limits');
-ColorbarLimOld = cell2mat(ColorbarLimOld);
-[cmin, cmax] = caxis(ax1);
-caxis(ax1, [cmin - 0.1, cmax]);
-ColorbarLim = get(hColorbar, 'Limits');
-ColorbarLim = cell2mat(ColorbarLim);
-TargetColorbar = find(ColorbarLim ~= ColorbarLimOld);
-if length(TargetColorbar) > 1
-    warning('Too much colorbar for one axis');
-elseif isempty(TargetColorbar)
-    error('There is no colorbar for target axis');
+if length(hColorbar) > 1
+    ColorbarLimOld = get(hColorbar, 'Limits');
+    ColorbarLimOld = cell2mat(ColorbarLimOld);
+    [cmin, cmax] = caxis(ax1);
+    caxis(ax1, [cmin - 0.1, cmax]);
+    ColorbarLim = get(hColorbar, 'Limits');
+    ColorbarLim = cell2mat(ColorbarLim);
+    TargetColorbar = find(ColorbarLim ~= ColorbarLimOld);
+    if length(TargetColorbar) > 1
+        warning('Too much colorbar for one axis');
+    elseif isempty(TargetColorbar)
+        error('There is no colorbar for target axis');
+    end
+    hColorbar = hColorbar(TargetColorbar(1));
 end
-hColorbar = hColorbar(TargetColorbar(1));
 
 ColorbarPosition = get(hColorbar, 'Position');
 LineWidth = get(hColorbar, 'LineWidth');
@@ -171,6 +173,14 @@ set(ax1, 'OuterPosition', ax1Position);
 set(hColorbar, 'Location', 'manual');
 set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
+if hColorbar.Ticks(1) == hColorbar.Limits(1)
+    hColorbar.Ticks(1) = [];
+    hColorbar.TickLabels(1) = [];
+end
+if hColorbar.Ticks(end) == hColorbar.Limits(2)
+    hColorbar.Ticks(end) = [];
+    hColorbar.TickLabels(end) = [];
+end
 
 if nargout == 1
     h2 = h;

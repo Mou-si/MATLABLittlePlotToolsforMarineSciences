@@ -44,11 +44,11 @@ function AxShareTick(varargin)
 %   YAxisLocation   set the location of YAxis. you can use 'left', 'right',
 %                   or 'both'
 %   XLackTick       set if the the subplots at the top or bottom of each 
-%                   column have xtick labels. defult is 0, which mean only
+%                   column have xtick labels. defult is 1, which mean only
 %                   the top or bottom subplots of the total subplots have
 %                   xtick labels.
 %   YLackTick       set if the the subplots at the left or right of each 
-%                   row have ytick labels. defult is 0, which mean only the
+%                   row have ytick labels. defult is 1, which mean only the
 %                   left or right subplots of the total subplots have ytick
 %                   labels.
 %   JustifyCenter   set if the subplots in the last raw will be justify
@@ -85,8 +85,8 @@ function AxShareTick(varargin)
 ax = 'all';
 JustifyCenter = 0;
 m_map = 0;
-XLackTick = 0;
-YLackTick = 0;
+XLackTick = 1;
+YLackTick = 1;
 for i = 1 : length(varargin)
     if ~isequal(class(varargin{i}), 'char') && ...
             ~isequal(class(varargin{i}), 'string')
@@ -218,7 +218,7 @@ switch XAxisLocation
                 XAxisKeep(find(mod(iture, yn) == i, 1, 'last')) = 1;
             end
         else
-            XAxisKeep(iture > (xn * (yn - 1))) = 1;
+            XAxisKeep(:) = 1;
         end
     case 'top'
         if XLackTick
@@ -226,7 +226,7 @@ switch XAxisLocation
                 XAxisKeep(find(mod(iture, yn) == i, 1)) = 2;
             end
         else
-            XAxisKeep(iture <= xn) = 2;
+            XAxisKeep(:) = 2;
         end
     case 'both' % 都有情况下要是只有一行就只保留下标签
         if XLackTick
@@ -237,8 +237,7 @@ switch XAxisLocation
                 XAxisKeep(find(mod(iture, yn) == i, 1)) = 2;
             end
         else
-            XAxisKeep(iture <= xn) = 2;
-            XAxisKeep(iture > (xn * (yn - 1))) = 1;
+            XAxisKeep(:) = 1;
         end
     case 'middle'
         XAxisKeep(:) = 99;
@@ -253,7 +252,7 @@ switch YAxisLocation
                 YAxisKeep(find(ceil((iture - 0.5) / xn) == i, 1)) = 1;
             end
         else
-            YAxisKeep(mod(iture, xn) == 1, 1) = 1;
+            YAxisKeep(:) = 1;
         end
     case 'right'
         if YLackTick
@@ -262,7 +261,7 @@ switch YAxisLocation
                     (find(ceil((iture - 0.5) / xn) == i, 1, 'last')) = 2;
             end
         else
-            YAxisKeep(mod(iture, xn) == 0, 2) = 2;
+            YAxisKeep(:) = 2;
         end
     case 'both' % 都有情况下要是只有一列就只保留左标签
         if YLackTick
@@ -274,8 +273,7 @@ switch YAxisLocation
                     (find(ceil((iture - 0.5) / xn) == i, 1, 'last')) = 2;
             end
         else
-            YAxisKeep(mod(iture, xn) == 0, 2) = 2;
-            YAxisKeep(mod(iture, xn) == 1, 1) = 1;
+            YAxisKeep(:) = 1;
         end
     case 'left&right'
         if YLackTick

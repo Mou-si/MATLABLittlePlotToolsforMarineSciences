@@ -46,6 +46,12 @@ function [LxLim, LyLim] = LocationCut(SLon, SLat, LLon, LLat, varargin)
 % [Xlimnit, Ylimnit] = LocationCut(SICLon, SICLat, DriftLon, DriftLat);
 
 %% input
+if (SLon(1, 1) - SLon(1, 2)) * LLon(1, 1) - LLon(1, 2) < 0
+    SLon = flipud(SLon);
+    SLon = rot90(SLon, -1);
+    SLat = flipud(SLat);
+    SLat = rot90(SLat, -1);
+end
 rotation = 0;
 for i = 1 : length(varargin) / 2
     switch varargin{i * 2 - 1}
