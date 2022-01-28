@@ -60,7 +60,9 @@ if max(size(NewLevel)) == 1
     if ~exist('Levels', 'Var')
         Levels = 1 : size(color, 1) + 1;
     end
-    NewLevel = linspace(Levels(1), Levels(end), NewLevel + 1);
+    NewLevel = linspace(Levels(1), Levels(end - 1), NewLevel);
+    NewLevel = [NewLevel, ...
+        NewLevel(end) + NewLevel(2) - NewLevel(1)];
 else
     % 要是NewLevel不是一个值，Levels没有值的话就把color分一分
     if ~exist('Levels', 'Var')

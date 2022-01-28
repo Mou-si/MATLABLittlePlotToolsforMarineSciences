@@ -215,7 +215,7 @@ switch XAxisLocation
     case 'bottom'
         if XLackTick
             for i = 0 : xn - 1
-                XAxisKeep(find(mod(iture, yn) == i, 1, 'last')) = 1;
+                XAxisKeep(find(mod(iture, xn) == i, 1, 'last')) = 1;
             end
         else
             XAxisKeep(:) = 1;
@@ -223,7 +223,7 @@ switch XAxisLocation
     case 'top'
         if XLackTick
             for i = 0 : xn - 1
-                XAxisKeep(find(mod(iture, yn) == i, 1)) = 2;
+                XAxisKeep(find(mod(iture, xn) == i, 1)) = 2;
             end
         else
             XAxisKeep(:) = 2;
@@ -231,10 +231,10 @@ switch XAxisLocation
     case 'both' % 都有情况下要是只有一行就只保留下标签
         if XLackTick
             for i = 0 : xn - 1
-                XAxisKeep(find(mod(iture, yn) == i, 1, 'last')) = 1;
+                XAxisKeep(find(mod(iture, xn) == i, 1, 'last')) = 1;
             end
             for i = 0 : xn - 1
-                XAxisKeep(find(mod(iture, yn) == i, 1)) = 2;
+                XAxisKeep(find(mod(iture, xn) == i, 1)) = 2;
             end
         else
             XAxisKeep(:) = 1;
