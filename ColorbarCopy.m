@@ -1,7 +1,9 @@
 function color = ColorbarCopy(dir, varargin)
 % copy a colorbar via picture.
 %
-% this function need function ColorbarRemap
+% this function need function ColorbarRemap. This function depends on
+% function clipboardex.m by xialulee. download url: 
+% https://zhidao.baidu.com/question/691353646683613324.html
 %
 %% Syntax
 % color = ColorbarCopy(dir);
@@ -9,11 +11,9 @@ function color = ColorbarCopy(dir, varargin)
 %
 %% varargin lists
 % MUST (needn't name)
-%   dir                 the path of colorbar picture you want to copy
+%   dir                 the path of colorbar picture you want to copy. you
+%                       can input 'paste', to read your clipboard
 % NAME & VALUE
-%   Uniform             set the if the colormap you want is Uniform. IF
-%                       you set the 'Uniform', the 'Levels' & 'NewLevelNum'
-%                       is needed better.
 %   NewLevelNum         set the number of colors in new colormap. 1 defult.
 %                       Attention: it is different of 'Levels'. 128 defult.
 %                       If your raw colormap is not uniform, input this.
@@ -49,8 +49,6 @@ if mod(length(varargin), 2) ~= 0
     error('Please check input var');
 end
 % defult
-Uniform = 1;
-NewLevelNum = 128;
 iteration = 2;
 BlackCut = 0;
 BlackThreshold = 0.15;
@@ -75,14 +73,19 @@ for i = 1 : length(varargin) / 2
 end
 
 %% read colorbar
-colorRead = imread( dir );
-if size( colorRead, 1 ) < size( colorRead, 2 )
-    colorRead = permute( colorRead, [ 2, 1, 3 ] );
+switch dir
+    case 'paste'
+        colorRead = clipboardex('paste');
+    otherwise
+        colorRead = imread(dir);
 end
-color = colorRead( :, round( size( colorRead, 2 ) / 2 ), : );
-color = squeeze( color );
-color = double( color ) / 255;
-color = flipud( color );
+if size(colorRead, 1) < size(colorRead, 2)
+    colorRead = permute( colorRead, [2, 1, 3]);
+end
+color = mean(colorRead, 2);
+color = squeeze(color);
+color = double(color) / 255;
+color = flipud(color);
 % 去颜色间的黑线 这里用了自动判断，把颜色跳着选，所以假设每个颜色之间都有黑分割线
 if BlackCut
     BlackLoc = sum(abs(color(:, 1 : 2) - color(:, 2 : 3)), 2) < (BlackThreshold / 10) & ...
@@ -93,16 +96,24 @@ end
 
 %% get color
 colorChange = color(2 : end, :) - color(1 : end -1, :);
+colorChange = sqrt(sum(colorChange .^ 2, 2));
+colorChangeNum = sum(colorChange ~= 0);
 for j = 1 : iteration % 迭代去除抖动
+    colorChange(abs(colorChange) >= std(colorChange(colorChange > 0)) / 4) = 0; %抖动判定
+    color = color(colorChange == 0, :);
+    colorChange = color(2 : end, :) - color(1 : end -1, :);
     colorChange = sqrt(sum(colorChange .^ 2, 2));
-    colorChange(abs(colorChange) <= std(colorChange) / 4, :) = 0; %抖动判定
-    if j < iteration % 最后一次不做
-        color = color(colorChange == 0, :);
-        colorChange = color(2 : end, :) - color(1 : end -1, :);
-    end
 end
-colorChange = logical(sum(colorChange, 2));
-color = [color(colorChange, :); color(end, :)];
+[~, colorChange] = findpeaks(colorChange);
+colorChangeNum = floor(colorChangeNum ./ length(colorChange) ./ 2);
+colorChange = [0; colorChange; size(color, 1)];
+color2 = color;
+clear color
+for i = 1 : length(colorChange) - 1
+    color(i, :) = mean(color2(...
+        colorChange(i) + colorChangeNum + 1 : ...
+        colorChange(i + 1) - colorChangeNum, :), 1);
+end
 switch BlackHeadEnd
     case 1
         color = [[1, 1, 1]; color];
@@ -111,11 +122,15 @@ switch BlackHeadEnd
     case 3
         color = [[1, 1, 1]; color; [1, 1, 1]];
 end
+color(isnan(color(:, 1)), :) = [];
 
 %% re-map
 if ~exist('Levels', 'var')
     Levels = (1 : size(color, 1) + 1)'; %前面没有设置Levels的默认值，这里默认为均匀
 end
+if ~exist('NewLevelNum', 'var')
+    NewLevelNum = size(color, 1);
+end
 color = ColorbarRemap(...
-    color, Levels, 'Levels', Levels(1 : end), 'gcd', ...
+    color, NewLevelNum, 'Levels', Levels(1 : end), 'gcd', ...
     (Levels(end) - Levels(1)) / NewLevelNum);

@@ -65,6 +65,22 @@ if ~HideColorbar
     if isempty(cb)
         cb = colorbar;
     end
+    if length(cb) > 1
+        ColorbarLimOld = get(cb, 'Limits');
+        ColorbarLimOld = cell2mat(ColorbarLimOld);
+        [cmin, cmax] = caxis(ax1);
+        caxis(ax1, [cmin - 0.1, cmax]);
+        ColorbarLim = get(cb, 'Limits');
+        ColorbarLim = cell2mat(ColorbarLim);
+        TargetColorbar = find(ColorbarLim ~= ColorbarLimOld);
+        if length(TargetColorbar) > 1
+            warning('Too much colorbar for one axis');
+        elseif isempty(TargetColorbar)
+            error('There is no colorbar for target axis');
+        end
+        cb = cb(TargetColorbar(1));
+        caxis(ax1, [cmin, cmax]);
+    end
     if ~Symmetry
         cb.Limits = CLimit;
     end

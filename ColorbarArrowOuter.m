@@ -97,19 +97,22 @@ if isempty(hColorbar)
     hColorbar = colorbar;
 end
 % 确定与ax1匹配的colorbar
-ColorbarLimOld = get(hColorbar, 'Limits');
-ColorbarLimOld = cell2mat(ColorbarLimOld);
-[cmin, cmax] = caxis(ax1);
-caxis(ax1, [cmin - 0.1, cmax]);
-ColorbarLim = get(hColorbar, 'Limits');
-ColorbarLim = cell2mat(ColorbarLim);
-TargetColorbar = find(ColorbarLim ~= ColorbarLimOld);
-if length(TargetColorbar) > 1
-    warning('Too much colorbar for one axis');
-elseif isempty(TargetColorbar)
-    error('There is no colorbar for target axis');
+if length(hColorbar) > 1
+    ColorbarLimOld = get(hColorbar, 'Limits');
+    ColorbarLimOld = cell2mat(ColorbarLimOld);
+    [cmin, cmax] = caxis(ax1);
+    caxis(ax1, [cmin - 0.1, cmax]);
+    ColorbarLim = get(hColorbar, 'Limits');
+    ColorbarLim = cell2mat(ColorbarLim);
+    TargetColorbar = find(ColorbarLim ~= ColorbarLimOld);
+    if length(TargetColorbar) > 1
+        warning('Too much colorbar for one axis');
+    elseif isempty(TargetColorbar)
+        error('There is no colorbar for target axis');
+    end
+    hColorbar = hColorbar(TargetColorbar(1));
+    caxis(ax1, [cmin, cmax]);
 end
-hColorbar = hColorbar(TargetColorbar(1));
 
 ColorbarPosition = get(hColorbar, 'Position');
 LineWidth = get(hColorbar, 'LineWidth');
@@ -121,15 +124,25 @@ if Orientation(1) == 'h'
     ColorbarPosition = ColorbarPosition([2, 1, 4, 3]);
 end
 
+% 确定图窗大小，确定箭头相对大小
+f = gcf;
+if Orientation(1) == 'h'
+    FigureAdjust = f.Position(4) / f.Position(3);
+else
+    FigureAdjust = f.Position(3) / f.Position(4);
+end
+
 % 下半部分箭头关键点位置
 % 计算ArrowHigh
 switch ArrowLength % 三种情况
     case 'h' % 正三角形
-        ArrowHigh = ColorbarPosition(3) * sqrt(3) / 2;
+        ArrowHigh = ColorbarPosition(3) * sqrt(3) / 2 * FigureAdjust;
     case 'm' % 直角三角形
-        ArrowHigh = ColorbarPosition(3) * sqrt(2) / 2;
+        ArrowHigh = ColorbarPosition(3) * sqrt(2) / 2 * FigureAdjust;
     case 'l' % 120钝角三角形
-        ArrowHigh = ColorbarPosition(3) / sqrt(3) / 2;
+        ArrowHigh = ColorbarPosition(3) / sqrt(3) / 2 * FigureAdjust;
+    otherwise
+        ArrowHigh = ColorbarPosition(3) * ArrowLength * FigureAdjust;
 end
 % 与Colorbar计算，得出下半部分箭头位置
 ColorbarLeftLow = [ColorbarPosition(1); ColorbarPosition(2) + ArrowHigh];
@@ -180,7 +193,7 @@ end
 
 % 画arrows
 for i = UpLowIndex
-    h{i} = patch(ArrowPoint(i * 2 - 1, :), ArrowPoint(i * 2, :), color(i, :), ...
+    h{i} = patch(BGAxis, ArrowPoint(i * 2 - 1, :), ArrowPoint(i * 2, :), color(i, :), ...
         'LineStyle', ArrowLine);
     h{i}.Tag = 'ColorbarArrows';
 end
@@ -223,16 +236,16 @@ if ArrowAway < 0  && hColorbar.Box
     
     % 画线
     hColorbar.Box = 0;
-    ColorbarLine = line(WholeColorbarPoint(1, :), WholeColorbarPoint(2, :));
+    ColorbarLine = line(BGAxis, WholeColorbarPoint(1, :), WholeColorbarPoint(2, :));
     set(ColorbarLine, 'Color', LineColor, 'LineWidth', LineWidth);
     ColorbarLine.Tag = 'ColorbarArrowsLine';
 end
-axis off % 去除箭头的ax
-axis([0, 1, 0, 1]) % 规定xy轴范围，否则会不满足0到1
 % 调整画，原来的自动colorbar位置会随着窗口变化而变化，这里干脆定死，反正也不好看，
 % 不会真有人美化colorbar不调整他的大小吧
-set(ax1, 'OuterPosition', ax1Position);
-set(hColorbar, 'Location', 'manual');
+if ~isequal(hColorbar.Location, 'manual')
+    set(ax1, 'OuterPosition', ax1Position);
+    set(hColorbar, 'Location', 'manual');
+end
 set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
 

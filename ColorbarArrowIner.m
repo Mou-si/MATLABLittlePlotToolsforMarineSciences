@@ -17,7 +17,7 @@ function h2 = ColorbarArrowIner(varargin)
 %
 % NAME & VALUE
 %   BGColor            Background color, defult 'w'
-%   ax1                point a axes
+%   ax                 point a axes
 %   up or right        up or right arrow, defult on
 %   low or left        low or left arrow, defult on
 %   ArrowLength        length of arrow, defult is 'h'
@@ -75,7 +75,7 @@ end
 %% prepare
 % 创造一个和gcf一样大的ax，在colorbar位置画上mask
 % 如果没有BGAxis就画一个
-AddBGAxis;
+cbAxis = AddBGAxis;
 % 去掉先前的Arrow
 if ~isempty(findobj('tag', 'ColorbarArrows'))
     ColorbarArrowDelete;
@@ -103,6 +103,7 @@ if length(hColorbar) > 1
         error('There is no colorbar for target axis');
     end
     hColorbar = hColorbar(TargetColorbar(1));
+    caxis(ax1, [cmin, cmax]);
 end
 
 ColorbarPosition = get(hColorbar, 'Position');
@@ -154,14 +155,15 @@ end
 % 画MASK
 hold on
 for i = UpLowIndex
-    h{i} = patch(ColorbarMask(i * 2 - 1, :), ColorbarMask(i * 2, :), BGColor, ...
+    h{i} = patch(cbAxis, ...
+        ColorbarMask(i * 2 - 1, :), ColorbarMask(i * 2, :), BGColor, ...
         'EdgeColor', BGColor, 'LineWidth', LineWidth);
     h{i}.Tag = 'ColorbarArrows';
     % 画上边界线遮住原来的边界线
 end
 
  % 画上新的边界线
-ColorbarLine = line(...
+ColorbarLine = line(cbAxis, ...
     [ColorbarMask(1, 3 : 5), fliplr(ColorbarMask(3, 3 : 5)), ColorbarMask(1, 3)], ...
     [ColorbarMask(2, 3 : 5), fliplr(ColorbarMask(4, 3 : 5)), ColorbarMask(2, 3)], ...
     'color', LineColor, 'LineWidth', LineWidth);
@@ -175,11 +177,9 @@ set(hColorbar, 'Position', ColorbarPosition);
 set(hColorbar, 'Orientation', Orientation);
 if hColorbar.Ticks(1) == hColorbar.Limits(1)
     hColorbar.Ticks(1) = [];
-    hColorbar.TickLabels(1) = [];
 end
 if hColorbar.Ticks(end) == hColorbar.Limits(2)
     hColorbar.Ticks(end) = [];
-    hColorbar.TickLabels(end) = [];
 end
 
 if nargout == 1

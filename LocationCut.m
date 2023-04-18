@@ -8,6 +8,9 @@ function [LxLim, LyLim] = LocationCut(SLon, SLat, LLon, LLat, varargin)
 % the the discontinuity of latitude can be avoid with features of
 % multivalue complex function.
 %
+% ATTENTION! At the edge of figure, the  deformation of the grid may cause
+% large errors.
+%
 %% Syntax
 % LPosit = LocationCut(SLon, SLat, LLon, LLat);
 % [Xlimnit, Ylimnit] = LocationCut(...);
@@ -46,7 +49,8 @@ function [LxLim, LyLim] = LocationCut(SLon, SLat, LLon, LLat, varargin)
 % [Xlimnit, Ylimnit] = LocationCut(SICLon, SICLat, DriftLon, DriftLat);
 
 %% input
-if (SLon(1, 1) - SLon(1, 2)) * LLon(1, 1) - LLon(1, 2) < 0
+if length(SLon) > 1 && ...
+        (SLon(1, 1) - SLon(1, 2)) * LLon(1, 1) - LLon(1, 2) < 0
     SLon = flipud(SLon);
     SLon = rot90(SLon, -1);
     SLat = flipud(SLat);
@@ -87,10 +91,16 @@ SPositImag = imag(SPosit);
 LPosit = LLat .* exp(1i .* ((LLon + rotation) ./ 180) .* pi);
 LPositReal = real(LPosit);
 LPositImag = imag(LPosit);
+deltaReal = LPositReal(1 : end - 1, :) - LPositReal(2 : end, :);
+deltaReal = max(abs(deltaReal(:)));
+deltaImag = LPositImag(:, 1 : end - 1) - LPositImag(:, 2 : end);
+deltaImag = max(abs(deltaImag(:)));
 
 %% Get Position
-LPositReal = LPositReal <= max(SPositReal(:)) & LPositReal >= min(SPositReal(:));
-LPositImag = LPositImag <= max(SPositImag(:)) & LPositImag >= min(SPositImag(:));
+LPositReal = LPositReal <= (max(SPositReal(:)) + deltaReal) & ...
+    LPositReal >= (min(SPositReal(:)) - deltaReal);
+LPositImag = LPositImag <= (max(SPositImag(:)) + deltaImag) & ...
+    LPositImag >= (min(SPositImag(:)) - deltaImag);
 LPosit = LPositReal & LPositImag;
 
 if nargout == 2
