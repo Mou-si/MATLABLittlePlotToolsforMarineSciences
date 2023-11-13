@@ -165,31 +165,31 @@ for i = 1 : length(ax)
 end
 
 % 自动获取Gap
+if xn == 1
+    xgap = 0;
+elseif xn == 2
+    xgap = ax(find(mod(iture, xn) == 0, 1)).Position(1) - ...
+        (ax(find(mod(iture, xn) == 1, 1)).Position(1) + ...
+        ax(find(mod(iture, xn) == 1, 1)).Position(3));
+else
+    xgap = ax(find(mod(iture, xn) == 2, 1)).Position(1) - ...
+        (ax(find(mod(iture, xn) == 1, 1)).Position(1) + ...
+        ax(find(mod(iture, xn) == 1, 1)).Position(3));
+end
+if yn == 1 % 排除只有一行
+    ygap = 0;
+else
+    ygap = ax(find(ceil(iture ./ xn) == 1, 1)).Position(2) - ...
+        (ax(find(ceil(iture ./ xn) == 2, 1)).Position(2) + ...
+        ax(find(ceil(iture ./ xn) == 2, 1)).Position(4));
+end
 if ~exist('Gap', 'Var')
     % 原始值的 1/5
-    if xn == 1
-        xgap = 0;
-    elseif xn == 2
-        xgap = ax(find(mod(iture, xn) == 0, 1)).Position(1) - ...
-            (ax(find(mod(iture, xn) == 1, 1)).Position(1) + ...
-            ax(find(mod(iture, xn) == 1, 1)).Position(3));
-    else
-        xgap = ax(find(mod(iture, xn) == 2, 1)).Position(1) - ...
-            (ax(find(mod(iture, xn) == 1, 1)).Position(1) + ...
-            ax(find(mod(iture, xn) == 1, 1)).Position(3));
-    end
     xgap = xgap / 5;
-    if yn == 1 % 排除只有一行
-        ygap = 0;
-    else
-        ygap = ax(find(ceil(iture ./ xn) == 1, 1)).Position(2) - ...
-            (ax(find(ceil(iture ./ xn) == 2, 1)).Position(2) + ...
-            ax(find(ceil(iture ./ xn) == 2, 1)).Position(4));
-    end
     ygap = ygap / 5;
 else % 手动
-    xgap = Gap(1);
-    ygap = Gap(2);
+    xgap = xgap .* Gap(1);
+    ygap = ygap .* Gap(2);
 end
 
 % 自动获取Position

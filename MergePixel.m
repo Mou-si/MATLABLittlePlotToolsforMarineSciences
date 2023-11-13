@@ -36,5 +36,5 @@ Data = reshape(Data, Multiply, size(Data, 1) ./ Multiply, ...
     Multiply, size(Data, 2) ./ Multiply);
 Data = permute(Data, [2, 4, 1, 3]);
 Data = reshape(Data, size(Data, 1), size(Data, 2), Multiply^2);
-Data = mean(Data, 3);
+Data = nanmean(Data, 3);
 end
